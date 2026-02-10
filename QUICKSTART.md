@@ -10,36 +10,39 @@ Installation et démarrage automatique de LogicAI-N8N en **UNE SEULE COMMANDE** 
 
 ## ⚡ Installation Ultra-Rapide
 
-### Windows
-
-Ouvrez **PowerShell** dans le dossier du projet et exécutez :
-
-```powershell
-.\start.ps1
-```
-
-**Si vous obtenez une erreur de droits d'exécution :**
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\start.ps1
-```
-
-### Linux / macOS
+### Déploiement avec le script automatique
 
 Ouvrez un **terminal** dans le dossier du projet et exécutez :
 
 ```bash
-./start.sh
+./deploy-instance.sh
+```
+
+**Rendez l'exécutable au besoin :**
+
+```bash
+chmod +x deploy-instance.sh
 ```
 
 Le script va automatiquement :
 1. ✅ Vérifier que Docker est installé
 2. ✅ Générer une clé de chiffrement sécurisée
 3. ✅ Créer la configuration nécessaire
-4. ✅ Construire les images Docker
-5. ✅ Démarrer tous les services
-6. ✅ Ouvrir votre navigateur web
+4. ✅ Construire et démarrer le conteneur
+5. ✅ Ouvrir votre navigateur web
+
+### Premier déploiement interactif
+
+```bash
+./deploy-instance.sh
+```
+
+Le script vous demandera :
+- **Nom de l'instance** (par défaut : `n8n-instance`)
+- **Port web** (par défaut : `5174`)
+- **Port API** (par défaut : `3001`)
+
+Appuyez simplement sur **Entrée** pour utiliser les valeurs par défaut !
 
 ## 🌐 Accès à l'Application
 
@@ -51,18 +54,24 @@ Une fois démarré, accédez à :
 ## 📝 Commandes Utiles
 
 ```bash
-# Voir les logs en temps réel
-docker-compose logs -f
+# Lister toutes les instances
+./manage-instances.sh list
 
-# Arrêter l'application
-docker-compose down
+# Voir les logs d'une instance
+./manage-instances.sh logs n8n-instance
 
-# Redémarrer l'application
-docker-compose restart
+# Arrêter une instance
+./manage-instances.sh stop n8n-instance
+
+# Démarrer une instance
+./manage-instances.sh start n8n-instance
+
+# Supprimer une instance
+./manage-instances.sh remove n8n-instance
 
 # Mettre à jour l'application
 git pull
-docker-compose up -d --build
+./manage-instances.sh rebuild n8n-instance
 
 # Sauvegarder la base de données
 cp data/dev.db data/dev.db.backup
@@ -70,9 +79,8 @@ cp data/dev.db data/dev.db.backup
 
 ## 📚 Documentation Complète
 
-Pour plus de détails sur la configuration, le développement, ou la résolution de problèmes, consultez :
-
-**[DOCKER_SETUP.md](DOCKER_SETUP.md)**
+- **[MULTI_INSTANCE_GUIDE.md](MULTI_INSTANCE_GUIDE.md)** : Guide complet pour gérer plusieurs instances
+- **[DOCKER_SETUP.md](DOCKER_SETUP.md)** : Documentation technique détaillée
 
 ## 🔧 Résolution de Problèmes
 
@@ -111,17 +119,22 @@ Assurez-vous que Docker Desktop est lancé :
 Pour tout réinitialiser :
 
 ```bash
-# Arrêter et supprimer tout
-docker-compose down -v
+# Arrêter et supprimer l'instance
+./manage-instances.sh remove n8n-instance
 
 # Relancer le script d'installation
-./start.sh  # ou .\start.ps1 sur Windows
+./deploy-instance.sh
 ```
 
 ## 🎉 C'est tout !
 
 LogicAI-N8N est maintenant prêt à l'emploi. Commencez à créer vos workflows d'automatisation !
 
+### 📖 Pour aller plus loin
+
+- **Multi-instances** : Consultez [MULTI_INSTANCE_GUIDE.md](MULTI_INSTANCE_GUIDE.md) pour déployer plusieurs instances N8N isolées
+- **Documentation technique** : Consultez [DOCKER_SETUP.md](DOCKER_SETUP.md) pour les détails de configuration
+
 ---
 
-**Besoin d'aide ?** Consultez [DOCKER_SETUP.md](DOCKER_SETUP.md) ou ouvrez une issue sur GitHub.
+**Besoin d'aide ?** Consultez [MULTI_INSTANCE_GUIDE.md](MULTI_INSTANCE_GUIDE.md), [DOCKER_SETUP.md](DOCKER_SETUP.md) ou ouvrez une issue sur GitHub.
