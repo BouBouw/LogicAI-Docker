@@ -20,11 +20,7 @@ RUN npm run build
 FROM node:20-alpine
 WORKDIR /app
 
-# Install backend production dependencies
-COPY server/package*.json ./server/
-RUN cd server && npm ci --production
-
-# Copy backend artifacts
+# Copy backend artifacts (node_modules from builder includes all dependencies)
 COPY --from=builder /app/server/node_modules ./server/node_modules
 COPY --from=builder /app/server/prisma ./server/prisma
 COPY --from=builder /app/server/src ./server/src
