@@ -25,6 +25,24 @@ Examples:
 EOF
 }
 
+validate_instance_name() {
+    local name="$1"
+    # Only allow alphanumeric, hyphens, underscores
+    if [[ ! "$name" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        echo "❌ Error: Invalid instance name '$name'"
+        echo "   Instance names must contain only letters, numbers, hyphens, and underscores"
+        exit 1
+    fi
+}
+
+check_container_exists() {
+    local name="$1"
+    if ! docker ps -a --format '{{.Names}}' | grep -q "^${name}$"; then
+        echo "❌ Error: Instance '$name' not found"
+        exit 1
+    fi
+}
+
 list_instances() {
     echo "📋 LogicAI-N8N Instances"
     echo "======================"
@@ -72,21 +90,18 @@ remove_instance() {
     local instance_name=$1
 
     if [ -z "$instance_name" ]; then
-        echo "Error: Instance name required"
+        echo "❌ Error: Instance name required"
         exit 1
     fi
 
-    # Check if container exists
-    if ! docker ps -a --format '{{.Names}}' | grep -q "^${instance_name}$"; then
-        echo "❌ Error: Instance '$instance_name' not found"
-        exit 1
-    fi
+    validate_instance_name "$instance_name"
+    check_container_exists "$instance_name"
 
     echo "🗑️  Removing instance: $instance_name"
 
     # Stop and remove container
-    docker stop $instance_name 2>/dev/null || true
-    docker rm -f $instance_name
+    docker stop "$instance_name" 2>/dev/null || true
+    docker rm -f "$instance_name"
 
     # Ask about volume
     volume="${instance_name}-data"
@@ -95,7 +110,7 @@ remove_instance() {
         read -p "Remove volume '$volume' as well? (y/N): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            docker volume rm $volume
+            docker volume rm "$volume"
             echo "✅ Volume removed"
         else
             echo "ℹ️  Volume preserved"
@@ -109,23 +124,29 @@ show_logs() {
     local instance_name=$1
 
     if [ -z "$instance_name" ]; then
-        echo "Error: Instance name required"
+        echo "❌ Error: Instance name required"
         exit 1
     fi
 
-    docker logs -f $instance_name
+    validate_instance_name "$instance_name"
+    check_container_exists "$instance_name"
+
+    docker logs -f "$instance_name"
 }
 
 stop_instance() {
     local instance_name=$1
 
     if [ -z "$instance_name" ]; then
-        echo "Error: Instance name required"
+        echo "❌ Error: Instance name required"
         exit 1
     fi
 
+    validate_instance_name "$instance_name"
+    check_container_exists "$instance_name"
+
     echo "⏸️  Stopping instance: $instance_name"
-    docker stop $instance_name
+    docker stop "$instance_name"
     echo "✅ Instance stopped"
 }
 
@@ -133,12 +154,15 @@ start_instance() {
     local instance_name=$1
 
     if [ -z "$instance_name" ]; then
-        echo "Error: Instance name required"
+        echo "❌ Error: Instance name required"
         exit 1
     fi
 
+    validate_instance_name "$instance_name"
+    check_container_exists "$instance_name"
+
     echo "▶️  Starting instance: $instance_name"
-    docker start $instance_name
+    docker start "$instance_name"
     echo "✅ Instance started"
 }
 
@@ -146,12 +170,15 @@ restart_instance() {
     local instance_name=$1
 
     if [ -z "$instance_name" ]; then
-        echo "Error: Instance name required"
+        echo "❌ Error: Instance name required"
         exit 1
     fi
 
+    validate_instance_name "$instance_name"
+    check_container_exists "$instance_name"
+
     echo "🔄 Restarting instance: $instance_name"
-    docker restart $instance_name
+    docker restart "$instance_name"
     echo "✅ Instance restarted"
 }
 
@@ -159,11 +186,14 @@ exec_shell() {
     local instance_name=$1
 
     if [ -z "$instance_name" ]; then
-        echo "Error: Instance name required"
+        echo "❌ Error: Instance name required"
         exit 1
     fi
 
-    docker exec -it $instance_name sh
+    validate_instance_name "$instance_name"
+    check_container_exists "$instance_name"
+
+    docker exec -it "$instance_name" sh
 }
 
 prune_instances() {
@@ -177,9 +207,19 @@ prune_instances() {
         return
     fi
 
+    echo "Found stopped instances:"
+    echo "$stopped"
+    echo ""
+    read -p "Remove all stopped instances? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Prune cancelled"
+        return
+    fi
+
     for container in $stopped; do
         echo "Removing: $container"
-        docker rm -f $container > /dev/null 2>&1
+        docker rm -f "$container" > /dev/null 2>&1
     done
 
     echo "✅ Pruned stopped instances"
