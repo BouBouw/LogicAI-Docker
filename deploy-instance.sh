@@ -3,12 +3,13 @@ set -e
 
 # Function to show usage
 usage() {
-    echo "Usage: $0 --name <instance-name> [--port <port>] [--id <instance-id>]"
+    echo "Usage: $0 --name <instance-name> [--port <port>] [--id <instance-id>] [--quiet]"
     echo ""
     echo "Examples:"
     echo "  $0 --name client1"
     echo "  $0 --name staging --port 9000"
     echo "  $0 --name test --id logic-test123"
+    echo "  $0 --name prod --quiet"
     exit 1
 }
 
@@ -44,12 +45,15 @@ done
 
 # Validate required arguments
 if [ -z "$INSTANCE_NAME" ]; then
-    echo "Error: --name is required"
+    echo "❌ Error: --name is required"
     usage
 fi
 
 # Sanitize instance name (convert to valid container name)
-CONTAINER_NAME="logic-$(echo $INSTANCE_NAME | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
+# Remove dangerous characters and convert to lowercase
+SANITIZED_NAME="${INSTANCE_NAME//[^a-zA-Z0-9_-]/-}"
+SANITIZED_NAME="${SANITIZED_NAME,,}"
+CONTAINER_NAME="logic-${SANITIZED_NAME}"
 VOLUME_NAME="${CONTAINER_NAME}-data"
 
 # Generate unique ID if not provided
@@ -112,7 +116,7 @@ echo "⏳ Waiting for container to start..."
 sleep 3
 
 # Check if container is running
-if docker ps --format '{{.Status}}' | grep -q "Up"; then
+if docker ps --filter "name=${CONTAINER_NAME}" --format '{{.Status}}' | grep -q "Up"; then
     echo "✅ Container started successfully"
 else
     echo "❌ Error: Container failed to start"
