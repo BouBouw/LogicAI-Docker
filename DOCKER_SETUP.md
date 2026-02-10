@@ -5,16 +5,22 @@ Ce guide vous explique comment déployer LogicAI-N8N avec Docker pour l'auto-hé
 ## Prérequis
 
 - **Docker** : [Télécharger Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- **Docker Compose** : Inclus avec Docker Desktop
 - **4 Go de RAM** minimum recommandés
 - **2 Go d'espace disque** disponibles
+- **Git** : Pour cloner le repository
 
 ## Architecture
 
-L'application est composée de :
+L'application utilise désormais une **architecture à conteneur unique** qui intègre tous les composants :
+
 - **Backend API** (Node.js + Express + Prisma + SQLite) : Port 3001
 - **Frontend Web** (React + Vite + Nginx) : Port 5174
-- **Base de données** : SQLite (fichier-based, dans `./data/dev.db`)
+- **Base de données** : SQLite (fichier-based, stockée dans `./data/instances/{nom}/database.db`)
+
+Cette architecture simplifiée permet :
+- Un déploiement plus simple avec un seul conteneur
+- Une meilleure gestion des ressources
+- La possibilité de déployer plusieurs instances indépendantes avec des bases de données séparées
 
 ## Installation Rapide
 
@@ -37,107 +43,147 @@ ENCRYPTION_KEY="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 CORS_ORIGIN="http://localhost"
 ```
 
-### 3. Démarrer l'application
+### 3. Déployer l'application
 
+Le déploiement utilise le script `deploy-instance.sh` qui crée automatiquement :
+- Une nouvelle instance avec son identifiant unique
+- Un conteneur Docker avec tous les composants intégrés
+- Une base de données SQLite dédiée pour cette instance
+
+**Sur Linux/macOS :**
 ```bash
-docker-compose up -d
+chmod +x deploy-instance.sh
+./deploy-instance.sh
+```
+
+**Sur Windows (PowerShell ou Git Bash) :**
+```bash
+./deploy-instance.sh
 ```
 
 Cette commande va :
-- Construire les images Docker (quelques minutes au premier lancement)
-- Démarrer les containers en arrière-plan
+- Construire l'image Docker (quelques minutes au premier lancement)
+- Créer une instance avec un ID unique (ex: `logicai-instance-abc123`)
+- Démarrer le conteneur en arrière-plan
 - Initialiser la base de données automatiquement
+- Afficher l'URL d'accès
 
 ### 4. Accéder à l'application
 
-Ouvrez votre navigateur : **http://localhost:5174**
+Le script affichera l'URL d'accès, par exemple : **http://localhost:5174**
 
 L'interface web devrait s'afficher !
 
-## Commandes Docker Utiles
+## Commandes Utiles
+
+Le script `manage-instances.sh` centralise toutes les opérations de gestion :
+
+### Lister les instances
+
+```bash
+./manage-instances.sh list
+```
+
+Affiche toutes les instances déployées avec leur statut.
 
 ### Voir les logs
 
 ```bash
-# Tous les services
-docker-compose logs -f
+# Tous les containers
+./manage-instances.sh logs
 
-# Uniquement le backend
-docker-compose logs -f server
+# Logs d'une instance spécifique
+./manage-instances.sh logs logicai-instance-abc123
 
-# Uniquement le frontend
-docker-compose logs -f
+# Suivre les logs en temps réel
+./manage-instances.sh logs logicai-instance-abc123 --follow
 ```
 
-### Arrêter l'application
+### Arrêter une instance
 
 ```bash
-# Arrêter sans supprimer les données
-docker-compose down
-
-# Arrêter et supprimer tout (y compris les volumes)
-docker-compose down -v
+./manage-instances.sh stop logicai-instance-abc123
 ```
 
-### Redémarrer l'application
+### Redémarrer une instance
 
 ```bash
-docker-compose restart
+./manage-instances.sh restart logicai-instance-abc123
 ```
 
-### Mettre à jour l'application
+### Supprimer une instance
 
 ```bash
-# Arrêter les containers
-docker-compose down
+# Supprimer une instance ( conserve les données)
+./manage-instances.sh remove logicai-instance-abc123
 
+# Supprimer une instance et ses données
+./manage-instances.sh remove logicai-instance-abc123 --delete-data
+```
+
+### Mettre à jour une instance
+
+```bash
 # Mettre à jour le code
 git pull
 
-# Reconstruire et redémarrer
-docker-compose up -d --build
+# Mettre à jour et reconstruire une instance spécifique
+./manage-instances.sh update logicai-instance-abc123
+
+# Mettre à jour toutes les instances
+./manage-instances.sh update-all
 ```
 
-### Vérifier l'état des services
+### Vérifier l'état des instances
 
 ```bash
-docker-compose ps
+./manage-instances.sh status
 ```
 
-Les services devraient afficher "healthy" une fois démarrés.
+Affiche l'état détaillé de toutes les instances (actives, arrêtées, en erreur).
 
-## Développement avec Hot-Reload
-
-Pour le développement, utilisez `docker-compose.dev.yml` qui permet le hot-reload du code :
-
-```bash
-docker-compose -f docker-compose.dev.yml up
-```
-
-- **Backend** : http://localhost:3001
-- **Frontend** : http://localhost:5173
-
-Les changements de code seront automatiquement rechargés.
-
-## Structure des Données
+## Persistance des Données
 
 ### Base de données SQLite
 
-La base de données est stockée dans :
-- **Chemin** : `./data/dev.db`
+Chaque instance possède sa propre base de données :
+- **Chemin** : `./data/instances/{instance-id}/database.db`
 - **Format** : SQLite (fichier unique)
 - **Backup** : Il suffit de copier ce fichier !
 
+Exemple :
+```
+data/
+└── instances/
+    ├── logicai-instance-abc123/
+    │   └── database.db
+    └── logicai-instance-def456/
+        └── database.db
+```
+
 ### Volumes persistants
 
-Les données sont persistées dans le volume Docker `data`. Même si vous supprimez les containers, vos données sont conservées.
+Les données sont persistées dans le répertoire `./data/instances/`. Même si vous supprimez un container, vos données sont conservées tant que vous n'utilisez pas l'option `--delete-data`.
+
+### Backup des données
+
+Pour sauvegarder une instance :
+```bash
+# Créer une archive de l'instance
+cp -r data/instances/logicai-instance-abc123 data/instances/logicai-instance-abc123.backup.$(date +%Y%m%d)
+```
 
 ## Gestion de la Base de Données
 
 ### Ouvrir Prisma Studio (Interface graphique)
 
+Pour accéder à la base de données d'une instance spécifique :
+
 ```bash
+# Se placer dans le répertoire server
 cd server
+
+# Lancer Prisma Studio
 npm run db:studio
 ```
 
@@ -153,68 +199,112 @@ cd server
 npm run db:reset
 ```
 
-⚠️ **Attention** : Cela supprime toutes les données !
+⚠️ **Attention** : Cela supprime toutes les données de la base de données de développement !
+
+Pour une instance spécifique, vous pouvez supprimer son fichier de base de données :
+```bash
+# Arrêter l'instance d'abord
+./manage-instances.sh stop logicai-instance-abc123
+
+# Supprimer la base de données
+rm data/instances/logicai-instance-abc123/database.db
+
+# Redémarrer (la base sera recréée)
+./manage-instances.sh restart logicai-instance-abc123
+```
 
 ## Résolution de Problèmes
 
 ### Le frontend ne se charge pas
 
-**Vérifier que les containers sont démarrés :**
+**Vérifier que le container est démarré :**
 ```bash
-docker-compose ps
+./manage-instances.sh status
 ```
 
 **Vérifier les logs :**
 ```bash
-docker-compose logs web
+./manage-instances.sh logs logicai-instance-abc123 --follow
 ```
 
 **Solution :** Recréer le container
 ```bash
-docker-compose up -d --build web
+./manage-instances.sh remove logicai-instance-abc123
+./deploy-instance.sh
 ```
 
 ### Le backend ne démarre pas
 
 **Vérifier les logs :**
 ```bash
-docker-compose logs server
+./manage-instances.sh logs logicai-instance-abc123 --follow
 ```
 
 **Problèmes courants :**
-- Port 3001 déjà utilisé : Changez le port dans `docker-compose.yml`
+- Port 5174 déjà utilisé : Le script détectera automatiquement un port disponible
 - Permissions sur le dossier `data/` : Vérifiez que Docker a les droits d'écriture
+```bash
+# Sur Linux/macOS
+sudo chmod -R 755 data/
+```
 
 ### Erreur de connexion à la base de données
 
 **Vérifier que le fichier de base de données existe :**
 ```bash
-ls -la data/dev.db
+ls -la data/instances/logicai-instance-abc123/database.db
 ```
 
 **Recréer la base de données :**
 ```bash
-cd server
-npx prisma db push
+# Arrêter l'instance
+./manage-instances.sh stop logicai-instance-abc123
+
+# Supprimer la base de données
+rm data/instances/logicai-instance-abc123/database.db
+
+# Redémarrer (la base sera recréée automatiquement)
+./manage-instances.sh restart logicai-instance-abc123
 ```
 
-### Les containers ne sont pas "healthy"
+### Le container ne démarre pas
 
-**Attendre plus longtemps :**
-Les health checks ont une période de démarrage de 40 secondes.
-
-**Vérifier les logs d'health check :**
+**Vérifier les logs détaillés :**
 ```bash
-docker inspect logicai-n8n-server | grep -A 10 Health
+./manage-instances.sh logs logicai-instance-abc123 --follow
 ```
+
+**Problèmes courants :**
+- Image Docker corrompue : Reconstruire l'image
+```bash
+./manage-instances.sh remove logicai-instance-abc123
+docker rmi logicai-n8n-app
+./deploy-instance.sh
+```
+
+- Mémoire insuffisante : Vérifiez que Docker a au moins 4 Go de RAM alloués
+- Ports déjà utilisés : Le script détectera automatiquement des ports disponibles
+
+## Multi-Instances
+
+Pour déployer plusieurs instances de LogicAI-N8N avec des bases de données séparées, consultez le guide détaillé :
+
+**[Guide Multi-Instances](MULTI_INSTANCE_GUIDE.md)**
+
+Ce guide explique :
+- Comment déployer plusieurs instances sur le même serveur
+- Comment gérer les ports et les bases de données
+- Comment isoler les configurations
+- Les bonnes pratiques pour la production
 
 ## Performance et Scalabilité
 
 ### Utilisation actuelle
 
-- **RAM** : ~200-500 MB par container (400 MB - 1 GB total)
+- **RAM** : ~400-600 MB par conteneur
 - **CPU** : Faible utilisation au repos
 - **Disque** : La base SQLite croît avec le nombre de workflows/exécutions
+- **Instances multiples** : Chaque instance consomme ~400-600 MB
 
 ### Optimisations
 
@@ -224,12 +314,17 @@ docker inspect logicai-n8n-server | grep -A 10 Health
 
 2. **Backup régulier** :
    ```bash
-   cp data/dev.db data/dev.db.backup.$(date +%Y%m%d)
+   # Backup d'une instance
+   cp -r data/instances/logicai-instance-abc123 data/backups/logicai-instance-abc123.$(date +%Y%m%d)
    ```
 
 3. **Monitoring** :
    ```bash
+   # Voir les ressources utilisées
    docker stats
+
+   # Voir l'état de toutes les instances
+   ./manage-instances.sh status
    ```
 
 ## Sécurité en Production
@@ -249,7 +344,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ### 2. Utiliser HTTPS
 
-Ajoutez un reverse proxy (traefik, nginx) avec SSL/TLS.
+Ajoutez un reverse proxy (traefik, nginx) avec SSL/TLS devant le container.
 
 ### 3. Limiter l'accès
 
@@ -259,26 +354,76 @@ Ajoutez un reverse proxy (traefik, nginx) avec SSL/TLS.
 
 ### 4. Sauvegardes automatiques
 
-Créez un cron job pour sauvegarder `data/dev.db` régulièrement.
+Créez un cron job pour sauvegarder régulièrement les instances :
+```bash
+# Exemple de script de backup
+#!/bin/bash
+for instance_dir in data/instances/*/; do
+    instance_name=$(basename "$instance_dir")
+    backup_dir="data/backups/${instance_name}.$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$backup_dir"
+    cp -r "$instance_dir" "$backup_dir/"
+done
+```
 
 ## Plateformes Spécifiques
 
 ### Windows
 
-Docker Desktop pour Windows est recommandé. Les commandes sont les mêmes dans PowerShell ou CMD.
+**Docker Desktop pour Windows** est recommandé.
+
+Exécuter les scripts :
+- **PowerShell** : Fonctionne directement
+- **Git Bash** : Fonctionne directement
+- **CMD** : Utilisez Git Bash ou PowerShell
+
+Assurez-vous que Docker Desktop est démarré avant de lancer les scripts.
 
 ### Linux
 
-Installer Docker Engine :
+**Installer Docker Engine :**
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 ```
 
+**Rendre les scripts exécutables :**
+```bash
+chmod +x deploy-instance.sh manage-instances.sh
+```
+
 ### macOS
 
-Docker Desktop pour macOS fonctionne parfaitement. Les performances sont optimales.
+**Docker Desktop pour macOS** fonctionne parfaitement. Les performances sont optimales.
+
+Rendre les scripts exécutables :
+```bash
+chmod +x deploy-instance.sh manage-instances.sh
+```
+
+## Migration depuis docker-compose
+
+Si vous avez une installation existante avec docker-compose :
+
+1. **Sauvegarder vos données** :
+   ```bash
+   cp data/dev.db data/dev.db.backup
+   ```
+
+2. **Arrêter docker-compose** :
+   ```bash
+   docker-compose down
+   ```
+
+3. **Déployer avec le nouveau script** :
+   ```bash
+   ./deploy-instance.sh
+   ```
+
+4. **Migrer les données si nécessaire** :
+   - Copiez l'ancienne base de données dans le nouveau répertoire d'instance
+   - Ou utilisez l'ancienne base comme point de départ
 
 ## Support
 
