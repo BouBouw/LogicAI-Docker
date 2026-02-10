@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+  // Database: /app/data/instance.db (per-instance SQLite database)
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  nodes       Json     // Graphe React Flow serialise
+  edges       Json     // Connexions entre noeuds
+  isActive    Boolean  @default(false)
+  webhookPath String?  @unique // Chemin du webhook si le workflow commence par un noeud webhook
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  executions  NodeExecution[]
+}
+
+model NodeExecution {
+  id          String   @id @default(uuid())
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  nodeId      String
+  nodeName    String
+  status      String   // "pending", "running", "success", "error"
+  input       Json?
+  output      Json?
+  error       String?
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+}
