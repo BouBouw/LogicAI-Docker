@@ -1,50 +1,35 @@
-# LogicAI-N8N Instance
+# LogicAI - Instance Docker
 
-Instance N8N personnalisée pour LogicAI avec des nodes supplémentaires et fonctionnalités avancées.
+Instance LogicAI avec nodes personnalisés et fonctionnalités avancées.
 
-## 🚀 Installation Rapide
+## 🚀 Installation Ultra-Rapide
 
-### Prérequis
-
-- Docker Desktop (Windows/Mac) ou Docker Engine (Linux)
-- Git
-
-### 1. Cloner le dépôt
+### Option 1: Docker Hub (Recommandé)
 
 ```bash
-git clone https://github.com/BouBouw/LogicAI-N8N.git
-cd LogicAI-N8N
+docker run -d --name logicai -p 5678:3000 bouboom/logicai:latest
 ```
 
-### 2. Configurer l'environnement
+C'est tout ! Ouvrez: http://localhost:5678
+
+### Option 2: Build local
 
 ```bash
-cp .env.example .env
-nano .env  # Éditer la configuration si nécessaire
+git clone https://github.com/BouBouw/LogicAI-Docker.git
+cd LogicAI-Docker
+docker build -t logicai:local .
+docker run -d --name logicai -p 5678:3000 logicai:local
 ```
 
-Variables importantes dans `.env`:
-- `N8N_PORT` - Port de l'instance (défaut: 5678)
-- `N8N_HOST` - Nom d'hôte ou sous-domaine
-- `N8N_PROTOCOL` - http ou https
-- `WEBHOOK_URL` - URL pour les webhooks
-
-### 3. Démarrer avec Docker
+### Option 3: Docker Compose
 
 ```bash
+git clone https://github.com/BouBouw/LogicAI-Docker.git
+cd LogicAI-Docker
 docker-compose up -d
 ```
 
-Ou utiliser le script de déploiement:
-
-```bash
-chmod +x deploy-instance.sh
-./deploy-instance.sh
-```
-
-### 4. Accéder à l'instance
-
-Ouvrir votre navigateur: `http://localhost:5678`
+---
 
 ## 📋 Fonctionnalités
 
@@ -65,110 +50,86 @@ Ouvrir votre navigateur: `http://localhost:5678`
 - ✅ Système de formulaires
 - ✅ Support multilingue (20+ langues)
 
+---
+
 ## 🐳 Gestion Docker
 
-### Démarrer l'instance
+### Images disponibles
+
+- `bouboom/logicai:latest` - Dernière version stable
+- `bouboom/logicai:1.0.0` - Version spécifique
+
+### Commandes de base
 
 ```bash
+# Lancer une instance
+docker run -d --name logicai -p 5678:3000 bouboom/logicai:latest
+
+# Avec volumes persistants
+docker run -d --name logicai -p 5678:3000 -v logicai-data:/app/data bouboom/logicai:latest
+
+# Voir les logs
+docker logs -f logicai
+
+# Arrêter
+docker stop logicai
+
+# Démarrer
+docker start logicai
+
+# Supprimer
+docker stop logicai && docker rm logicai
+```
+
+### Docker Compose
+
+```bash
+# Démarrer
 docker-compose up -d
-```
 
-### Arrêter l'instance
-
-```bash
+# Arrêter
 docker-compose down
-```
 
-### Voir les logs
-
-```bash
+# Logs
 docker-compose logs -f
+
+# Rebuild
+docker-compose up -d --build
 ```
 
-### Redémarrer
+---
+
+## 🔧 Configuration
+
+### Variables d'environnement
 
 ```bash
-docker-compose restart
+docker run -d \
+  --name logicai \
+  -p 5678:3000 \
+  -e INSTANCE_ID=mon-instance \
+  -e DATABASE_URL="postgresql://user:pass@host:5432/db" \
+  bouboom/logicai:latest
 ```
 
-### Supprimer l'instance
+### Configuration avancée
 
-```bash
-docker-compose down -v  # -v supprime aussi les volumes
-```
+Voir [DOCKER_HUB_SETUP.md](./DOCKER_HUB_SETUP.md) pour:
+- Publication automatique sur Docker Hub
+- Multi-architecture (amd64, arm64)
+- Versions sémantiques
+- GitHub Actions
 
-## 🔧 Scripts Disponibles
+---
 
-### `deploy-instance.sh`
+## 📚 Documentation
 
-Script de déploiement automatisé qui:
-1. Vérifie Docker
-2. Build l'image
-3. Démarre le conteneur
-4. Affiche les logs
+- **Quick Start**: [QUICK_START_DOCKER.md](./QUICK_START_DOCKER.md)
+- **Docker Hub Setup**: [DOCKER_HUB_SETUP.md](./DOCKER_HUB_SETUP.md)
+- **Docker Hub**: https://hub.docker.com/r/bouboom/logicai
+- **GitHub**: https://github.com/BouBouw/LogicAI-Docker
 
-```bash
-chmod +x deploy-instance.sh
-./deploy-instance.sh
-```
-
-## 🔐 Configuration Avancée
-
-### Base de données
-
-L'instance utilise Prisma + PostgreSQL par défaut. Pour changer:
-
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/n8n"
-```
-
-### WebSocket
-
-Pour la collaboration temps réel:
-
-```env
-WEBSOCKET_PORT=5679
-WEBSOCKET_ENABLED=true
-```
-
-### Authentification
-
-```env
-JWT_SECRET="your-secret-key"
-JWT_EXPIRES_IN="7d"
-```
-
-## 🐛 Dépannage
-
-### Port déjà utilisé
-
-```bash
-# Changer le port dans .env
-N8N_PORT=5679
-
-# Ou tuer le processus
-lsof -ti:5678 | xargs kill -9
-```
-
-### Permissions refusées
-
-```bash
-chmod +x deploy-instance.sh
-sudo docker-compose up -d
-```
-
-### Container ne démarre pas
-
-```bash
-docker-compose logs
-# Vérifier les logs pour les erreurs
-```
-
-## 📚 Documentation Complémentaire
-
-- [N8N Official Docs](https://docs.n8n.io/)
-- [Docker Documentation](https://docs.docker.com/)
-- [LogicAI Main Repo](https://github.com/BouBouw/LogicAI)
+---
 
 ## 🤝 Contribution
 
