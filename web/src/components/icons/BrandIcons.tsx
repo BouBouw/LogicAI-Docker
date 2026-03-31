@@ -256,3 +256,148 @@ export const TikTokIcon = () => (
     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93v6.16c0 2.52-1.12 4.84-2.9 6.15-1.7 1.25-3.87 1.64-5.91 1.05-2.01-.58-3.65-2.05-4.41-4.01-.76-1.96-.61-4.24.54-6.03 1.14-1.79 3.12-2.85 5.23-2.85.35 0 .69.04 1.03.11V.02z"/>
   </svg>
 );
+
+// Streaming Platform Icons
+export const TwitchIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#9146FF"/>
+    <path d="M6 4l-1 3v11h4v2h2l2-2h3l5-5V4H6zm13 9l-3 3h-3l-2 2v-2H8V6h11v7zm-3-5v4h-2V8h2zm-5 0v4H9V8h2z" fill="white"/>
+  </svg>
+);
+
+export const YouTubeIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#FF0000"/>
+    <path d="M19.615 7.154c-.232-.863-.915-1.542-1.774-1.774C16.252 5 12 5 12 5s-4.252 0-5.841.38c-.859.232-1.542.911-1.774 1.774C4 8.746 4 12 4 12s0 3.254.385 4.846c.232.863.915 1.542 1.774 1.774C7.748 19 12 19 12 19s4.252 0 5.841-.38c.859-.232 1.542-.911 1.774-1.774C20 15.254 20 12 20 12s0-3.254-.385-4.846zM10 15V9l5 3-5 3z" fill="white"/>
+  </svg>
+);
+
+export const KickIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#53FC18"/>
+    <path d="M8 6v12h2V6H8zm4 0v12h2l4-6-4-6h-2z" fill="#000"/>
+  </svg>
+);
+
+export const SnapchatIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#FFFC00"/>
+    <path d="M12 5c-1.5 0-2.7.5-3.5 1.5-.8.9-1.2 2.1-1.2 3.5 0 .8.2 1.5.5 2.1-.3.1-.6.2-.8.2-.5 0-.8-.2-1-.4-.2-.3-.3-.5-.3-.8h-1c0 .7.2 1.3.6 1.8.4.5 1 .8 1.7.8.3 0 .6 0 .9-.1.5.7 1.1 1.2 1.9 1.5-.1.2-.2.4-.2.6 0 .5.2.9.5 1.2.3.3.7.5 1.2.5h.4c0 .2.1.4.1.5 0 .5-.2.9-.5 1.2-.3.3-.7.5-1.2.5v1c.8 0 1.5-.3 2.1-.8.6.5 1.3.8 2.1.8v-1c-.5 0-.9-.2-1.2-.5-.3-.3-.5-.7-.5-1.2 0-.2 0-.4.1-.5h.4c.5 0 .9-.2 1.2-.5.3-.3.5-.7.5-1.2 0-.2-.1-.4-.2-.6.8-.3 1.4-.8 1.9-1.5.3.1.6.1.9.1.7 0 1.3-.3 1.7-.8.4-.5.6-1.1.6-1.8h-1c0 .3-.1.6-.3.8-.2.2-.5.4-1 .4-.3 0-.5-.1-.8-.2.3-.6.5-1.3.5-2.1 0-1.4-.4-2.6-1.2-3.5C14.7 5.5 13.5 5 12 5z" fill="#000"/>
+  </svg>
+);
+
+// AI Platform Icons
+export const AnthropicIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#D4B896"/>
+    <path d="M10 6l-2 12h2l1-6 1 6h2l-2-12h-2zm4 0l-2 12h2l2-12h-2z" fill="#181818"/>
+  </svg>
+);
+
+export const GeminiIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <defs>
+      <linearGradient id="geminiGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#4285F4"/>
+        <stop offset="50%" stopColor="#9B72CB"/>
+        <stop offset="100%" stopColor="#D96570"/>
+      </linearGradient>
+    </defs>
+    <rect width="24" height="24" rx="4" fill="url(#geminiGradient)"/>
+    <circle cx="8" cy="12" r="2.5" fill="white"/>
+    <circle cx="16" cy="12" r="2.5" fill="white"/>
+    <path d="M8 8l8 8M16 8l-8 8" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+export const PerplexityIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#20808D"/>
+    <path d="M12 5l-5 5h3v7h4v-7h3l-5-5z" fill="white"/>
+    <circle cx="12" cy="19" r="1.5" fill="white"/>
+  </svg>
+);
+
+export const GLMIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#0066CC"/>
+    <path d="M7 8h10v2H7zM7 12h10v2H7zM7 16h7v2H7z" fill="white" opacity="0.9"/>
+    <circle cx="16" cy="17" r="2" fill="white"/>
+  </svg>
+);
+
+export const OpenRouterIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <defs>
+      <linearGradient id="openrouterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#667EEA"/>
+        <stop offset="100%" stopColor="#764BA2"/>
+      </linearGradient>
+    </defs>
+    <rect width="24" height="24" rx="4" fill="url(#openrouterGradient)"/>
+    <circle cx="12" cy="12" r="3" fill="white"/>
+    <circle cx="6" cy="8" r="1.5" fill="white"/>
+    <circle cx="18" cy="8" r="1.5" fill="white"/>
+    <circle cx="6" cy="16" r="1.5" fill="white"/>
+    <circle cx="18" cy="16" r="1.5" fill="white"/>
+    <path d="M9 12l-3-4M15 12l3-4M9 12l-3 4M15 12l3 4" stroke="white" strokeWidth="1.5"/>
+  </svg>
+);
+
+export const OllamaIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#000000"/>
+    <path d="M12 4c-1.5 0-2.5.8-3 2-.5-.3-1-.5-1.5-.5-1.5 0-2.5 1-2.5 2.5 0 .5.2 1 .5 1.5-.3.5-.5 1-.5 1.5 0 1.5 1 2.5 2.5 2.5.5 0 1-.2 1.5-.5.5 1.2 1.5 2 3 2s2.5-.8 3-2c.5.3 1 .5 1.5.5 1.5 0 2.5-1 2.5-2.5 0-.5-.2-1-.5-1.5.3-.5.5-1 .5-1.5 0-1.5-1-2.5-2.5-2.5-.5 0-1 .2-1.5.5-.5-1.2-1.5-2-3-2zm0 2c.8 0 1.5.7 1.5 1.5S12.8 9 12 9s-1.5-.7-1.5-1.5S11.2 6 12 6z" fill="white"/>
+    <ellipse cx="12" cy="16" rx="4" ry="2" fill="white" opacity="0.8"/>
+  </svg>
+);
+
+// Database & Storage Icons
+export const FirebaseIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#FFCA28"/>
+    <path d="M7 19l5-16 2 6 3-8 3 18-13-1z" fill="#FFA000"/>
+    <path d="M7 19l5-16 2 6-2 10-5 0z" fill="#F57C00"/>
+  </svg>
+);
+
+export const SQLiteIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#003B57"/>
+    <path d="M12 4C8.5 4 6 5.5 6 7.5v9C6 18.5 8.5 20 12 20s6-1.5 6-3.5v-9C18 5.5 15.5 4 12 4z" fill="#0F80CC"/>
+    <ellipse cx="12" cy="7.5" rx="6" ry="2.5" fill="white" opacity="0.3"/>
+    <path d="M6 10.5c0 1.4 2.5 2.5 6 2.5s6-1.1 6-2.5" stroke="white" strokeWidth="1" fill="none" opacity="0.5"/>
+    <path d="M6 13.5c0 1.4 2.5 2.5 6 2.5s6-1.1 6-2.5" stroke="white" strokeWidth="1" fill="none" opacity="0.5"/>
+  </svg>
+);
+
+export const S3Icon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#FF9900"/>
+    <path d="M12 4l-6 3v6l6 3 6-3V7l-6-3z" fill="white"/>
+    <path d="M12 4v6M6 7l6 3 6-3M12 10v10M6 13l6 3 6-3" stroke="#FF9900" strokeWidth="1.5"/>
+  </svg>
+);
+
+// Communication Icons
+export const DiscordIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#5865F2"/>
+    <path d="M15.5 8c.5 0 1 .4 1 1v6c0 .6-.5 1-1 1h-7c-.5 0-1-.4-1-1V9c0-.6.5-1 1-1h7zm-6 2c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1zm4 0c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1z" fill="white"/>
+    <path d="M8 7c0-.3.2-.5.5-.5h1c.3 0 .5.2.5.5v.5H8V7zm6 0c0-.3.2-.5.5-.5h1c.3 0 .5.2.5.5v.5h-2V7z" fill="white"/>
+  </svg>
+);
+
+export const SlackIcon = () => (
+  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+    <rect width="24" height="24" rx="4" fill="#4A154B"/>
+    <rect x="11" y="6" width="2" height="5" rx="1" fill="#E01E5A"/>
+    <rect x="6" y="11" width="5" height="2" rx="1" fill="#36C5F0"/>
+    <rect x="11" y="13" width="2" height="5" rx="1" fill="#2EB67D"/>
+    <rect x="13" y="11" width="5" height="2" rx="1" fill="#ECB22E"/>
+    <circle cx="9" cy="9" r="1" fill="#E01E5A"/>
+    <circle cx="15" cy="9" r="1" fill="#36C5F0"/>
+    <circle cx="9" cy="15" r="1" fill="#ECB22E"/>
+    <circle cx="15" cy="15" r="1" fill="#2EB67D"/>
+  </svg>
+);

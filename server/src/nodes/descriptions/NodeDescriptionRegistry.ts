@@ -239,6 +239,125 @@ export const NODE_DESCRIPTIONS: Record<string, INodeDescription> = {
     category: NodeCategories.TRIGGER,
   },
 
+  logicaiTrigger: {
+    displayName: 'LogicAI Trigger',
+    name: 'logicaiTrigger',
+    subtitle: '={{$parameter.instanceUuid ? "Instance: " + $parameter.instanceUuid : "LogicAI"}}',
+    defaults: {
+      name: 'LogicAI Trigger',
+      color: '#10b981', // Emerald green
+      icon: 'Workflow',
+    },
+    inputs: ['main'],
+    outputs: ['main'],
+    properties: [
+      {
+        displayName: 'API URL',
+        name: 'apiUrl',
+        type: 'string',
+        default: 'http://localhost:3000',
+        placeholder: 'http://localhost:3000',
+        description: 'URL de l\'API LogicAI (peut être défini via LOGICAI_API_URL)',
+      },
+      {
+        displayName: 'Token',
+        name: 'token',
+        type: 'string',
+        typeOptions: {
+          password: true,
+        },
+        default: '',
+        placeholder: 'jwt-token-here',
+        description: 'Token JWT d\'authentification (peut être défini via LOGICAI_TOKEN)',
+        required: true,
+      },
+      {
+        displayName: 'Instance UUID',
+        name: 'instanceUuid',
+        type: 'string',
+        default: '',
+        placeholder: 'abc-123-def-456',
+        description: 'UUID de l\'instance LogicAI cible',
+        required: true,
+      },
+      {
+        displayName: 'Mode',
+        name: 'mode',
+        type: 'select',
+        default: 'webhook',
+        options: [
+          { name: 'Webhook Path', value: 'webhook', description: 'Déclencher via un chemin webhook' },
+          { name: 'Workflow ID', value: 'workflowId', description: 'Déclencher via l\'ID du workflow' },
+        ],
+        description: 'Méthode de déclenchement du workflow',
+      },
+      {
+        displayName: 'Webhook Path',
+        name: 'webhookPath',
+        type: 'string',
+        default: '',
+        placeholder: 'contact-form',
+        description: 'Chemin du webhook (sans le préfixe /webhook/)',
+        displayOptions: {
+          show: {
+            mode: ['webhook'],
+          },
+        },
+      },
+      {
+        displayName: 'Workflow ID',
+        name: 'workflowId',
+        type: 'string',
+        default: '',
+        placeholder: 'workflow-123',
+        description: 'ID du workflow à déclencher',
+        displayOptions: {
+          show: {
+            mode: ['workflowId'],
+          },
+        },
+      },
+      {
+        displayName: 'HTTP Method',
+        name: 'method',
+        type: 'select',
+        default: 'POST',
+        options: [
+          { name: 'GET', value: 'GET' },
+          { name: 'POST', value: 'POST' },
+          { name: 'PUT', value: 'PUT' },
+          { name: 'PATCH', value: 'PATCH' },
+          { name: 'DELETE', value: 'DELETE' },
+        ],
+        description: 'Méthode HTTP à utiliser',
+      },
+      {
+        displayName: 'Data',
+        name: 'data',
+        type: 'json',
+        default: '{}',
+        placeholder: '{"key": "value"}',
+        description: 'Données JSON à envoyer au workflow cible',
+      },
+      {
+        displayName: 'Custom Headers',
+        name: 'headers',
+        type: 'json',
+        default: '{}',
+        placeholder: '{"X-Custom-Header": "value"}',
+        description: 'En-têtes HTTP personnalisés (format JSON)',
+      },
+      {
+        displayName: 'Timeout',
+        name: 'timeout',
+        type: 'number',
+        default: 30000,
+        description: 'Timeout de la requête en millisecondes (défaut: 30000)',
+      },
+    ],
+    category: NodeCategories.TRIGGER,
+  },
+
   // ============================================
   // CORE LOGIC NODES
   // ============================================

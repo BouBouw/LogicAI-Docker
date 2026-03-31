@@ -6,6 +6,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Save, Play, Download, Upload, Copy, Trash2, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Node, Edge } from '@xyflow/react';
 import {
   exportWorkflow,
@@ -53,6 +54,7 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { t } = useTranslation();
 
   const handleExport = () => {
     const metadata = {
@@ -72,7 +74,7 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
     // Validate file
     const isValid = await validateWorkflowFile(file);
     if (!isValid) {
-      setImportError('Invalid workflow file. Please check the file format.');
+      setImportError(t('toolbar.invalidFile'));
       return;
     }
 
@@ -81,7 +83,7 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
       onImport?.({ nodes: importedNodes, edges: importedEdges });
       console.log('Imported workflow:', metadata);
     } catch (error: any) {
-      setImportError(error.message || 'Failed to import workflow');
+      setImportError(error.message || t('toolbar.importFailed'));
     } finally {
       // Reset input
       if (fileInputRef.current) {
@@ -117,10 +119,10 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
 
-    if (seconds < 60) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return date.toLocaleDateString();
+    if (seconds < 60) return t('toolbar.savedJustNow');
+    if (minutes < 60) return t('toolbar.savedMinutesAgo', { m: minutes });
+    if (hours < 24) return t('toolbar.savedHoursAgo', { h: hours });
+    return t('toolbar.savedOn', { date: date.toLocaleDateString() });
   };
 
   return (
@@ -131,11 +133,11 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
           onClick={onSave}
           disabled={isSaving || !hasUnsavedChanges}
           className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md transition-colors"
-          title="Save workflow (Ctrl+S)"
+          title={t('toolbar.titleSave')}
         >
           <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
           <span className="text-sm font-medium">
-            {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
+            {isSaving ? t('toolbar.saving') : t('toolbar.save')}
           </span>
         </button>
 
@@ -143,11 +145,11 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
           onClick={onExecute}
           disabled={isExecuting}
           className="flex items-center gap-2 px-3 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md transition-colors"
-          title="Execute workflow (Ctrl+Enter)"
+          title={t('toolbar.titleExecute')}
         >
           <Play className={`w-4 h-4 ${isExecuting ? 'animate-pulse' : ''}`} />
           <span className="text-sm font-medium">
-            {isExecuting ? 'Exécution...' : 'Exécuter'}
+            {isExecuting ? t('toolbar.executing') : t('toolbar.execute')}
           </span>
         </button>
       </div>
@@ -160,19 +162,19 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
         <button
           onClick={handleExport}
           className="flex items-center gap-2 px-3 py-2 hover:bg-white/10 text-white rounded-md transition-colors"
-          title="Export workflow to JSON file"
+          title={t('toolbar.titleExport')}
         >
           <Download className="w-4 h-4" />
-          <span className="text-sm">Exporter</span>
+          <span className="text-sm">{t('toolbar.export')}</span>
         </button>
 
         <button
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2 px-3 py-2 hover:bg-white/10 text-white rounded-md transition-colors"
-          title="Import workflow from JSON file"
+          title={t('toolbar.titleImport')}
         >
           <Upload className="w-4 h-4" />
-          <span className="text-sm">Importer</span>
+          <span className="text-sm">{t('toolbar.import')}</span>
         </button>
 
         <input
@@ -186,10 +188,10 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
         <button
           onClick={onClear}
           className="flex items-center gap-2 px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md transition-colors"
-          title="Clear workflow"
+          title={t('toolbar.titleClear')}
         >
           <Trash2 className="w-4 h-4" />
-          <span className="text-sm">Effacer</span>
+          <span className="text-sm">{t('toolbar.clear')}</span>
         </button>
       </div>
 
@@ -197,17 +199,17 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
       <div className="ml-auto flex items-center gap-4">
         {/* Node/Edge count */}
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <span className="font-medium text-orange-500">{nodes.length}</span>
-          <span>nœuds</span>
+          <span>{nodes.length}</span>
+          <span>{t('toolbar.nodes')}</span>
           <span className="text-gray-400">•</span>
-          <span className="font-medium text-orange-500">{edges.length}</span>
-          <span>connexions</span>
+          <span>{edges.length}</span>
+          <span>{t('toolbar.connections')}</span>
         </div>
 
         {/* Auto-save status */}
         {lastSaved && (
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <span>Enregistré {formatLastSaved(lastSaved)}</span>
+            <span>{formatLastSaved(lastSaved)}</span>
           </div>
         )}
 
@@ -218,7 +220,7 @@ export const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
             </span>
-            <span className="text-sm text-orange-600 dark:text-orange-400">Modifications non enregistrées</span>
+            <span className="text-sm text-orange-600 dark:text-orange-400">{t('toolbar.unsavedChanges')}</span>
           </div>
         )}
       </div>

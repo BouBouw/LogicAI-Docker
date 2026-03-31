@@ -14,6 +14,7 @@ import { ExecutionContext, NodeExecutionResult } from '../../types';
  */
 export class ChatTriggerNode extends BaseNode {
   private static readonly VALID_PLATFORMS = [
+    'textual',
     'discord',
     'telegram',
     'slack',
@@ -40,7 +41,7 @@ export class ChatTriggerNode extends BaseNode {
       );
     }
 
-    // Validate required fields based on platform
+    // Validate required fields based on platform (textual doesn't need token)
     if (['discord', 'telegram', 'slack'].includes(platform) && !this.config.token) {
       throw new Error(`Token is required for ${platform} platform`);
     }

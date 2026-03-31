@@ -10,25 +10,89 @@
 
 import React, { useMemo } from 'react';
 import { MiniMap as ReactFlowMiniMap, useReactFlow } from '@xyflow/react';
-import { NODE_TYPES_METADATA } from '../../types/node';
-import type { MiniMapProps, Node } from '@xyflow/react';
+import type { MiniMapProps, MiniMapNodeProps, Node } from '@xyflow/react';
 
 /**
- * Get node color based on type
+ * Hex colors matching the Tailwind border classes used in CustomNode COLOR_MAP
  */
-const getNodeColor = (node: Node): string => {
-  const metadata = NODE_TYPES_METADATA[node.type || ''];
-  return metadata?.color || '#6b7280';
+const NODE_COLORS: Record<string, string> = {
+  // Core
+  webhook:            '#a855f7',
+  httpRequest:        '#3b82f6',
+  setVariable:        '#22c55e',
+  editFields:         '#818cf8',
+  code:               '#a78bfa',
+  filter:             '#22d3ee',
+  switch:             '#fb923c',
+  merge:              '#f472b6',
+  splitInBatches:     '#2dd4bf',
+  wait:               '#9ca3af',
+  errorTrigger:       '#f87171',
+  executeWorkflow:    '#34d399',
+  limit:              '#a3e635',
+  sort:               '#38bdf8',
+  // Triggers
+  schedule:           '#f59e0b',
+  onSuccessFailure:   '#f43f5e',
+  formTrigger:        '#60a5fa',
+  chatTrigger:        '#6366f1',
+  clickTrigger:       '#ec4899',
+  emailTrigger:       '#6b7280',
+  httpPollTrigger:    '#14b8a6',
+  cronTrigger:        '#eab308',
+  // HTTP & data
+  htmlExtract:        '#4ade80',
+  rssRead:            '#fb923c',
+  ftp:                '#c084fc',
+  ssh:                '#6b7280',
+  // Database
+  mySQL:              '#2563eb',
+  mongoDB:            '#16a34a',
+  redis:              '#dc2626',
+  supabase:           '#10b981',
+  // Communication
+  email:              '#6b7280',
+  slack:              '#9333ea',
+  discord:            '#6366f1',
+  telegram:           '#06b6d4',
+  whatsApp:           '#22c55e',
+  // Cloud / productivity
+  googleSheets:       '#16a34a',
+  googleDrive:        '#eab308',
+  airtable:           '#3b82f6',
+  notion:             '#9ca3af',
+  trello:             '#f97316',
+  // AI/LLM
+  openAI:             '#34d399',
+  aiAgent:            '#a78bfa',
+  vectorStore:        '#f472b6',
+  embeddings:         '#22d3ee',
+  // Memory/Tool sub-nodes
+  memory:             '#8b5cf6',
+  tool:               '#f59e0b',
+  // Exclusive custom
+  humanInTheLoop:     '#ec4899',
+  smartDataCleaner:   '#eab308',
+  aiCostGuardian:     '#06b6d4',
+  noCodeBrowserAutomator: '#6366f1',
+  aggregatorMultiSearch:  '#14b8a6',
+  pdfIntelligentParser:   '#f43f5e',
+  liveCanvasDebugger:     '#a3e635',
+  socialMockupPreview:    '#a78bfa',
+  rateLimiterBypass:      '#f59e0b',
+  ghost:              '#9ca3af',
 };
 
 /**
- * Get node stroke color (lighter version of fill)
+ * Get node fill color based on type
  */
-const getNodeStroke = (node: Node): string => {
-  const color = getNodeColor(node);
-  // Lighten the color for stroke
-  return color + '40'; // Add transparency
-};
+const getNodeColor = (node: Node): string =>
+  NODE_COLORS[node.type || ''] ?? '#4b5563';
+
+/** Custom node renderer — bypasses React Flow CSS variable overrides */
+const MiniMapNodeRenderer = ({ x, y, width, height, color }: MiniMapNodeProps) => (
+  <rect x={x} y={y} width={width} height={height} rx={3} fill={color as string} fillOpacity={0.9} />
+);
 
 /**
  * Enhanced MiniMap Component
@@ -48,47 +112,36 @@ export const EnhancedMiniMap: React.FC<
   position = 'bottom-right',
   ...props
 }) => {
-  const { getNodes } = useReactFlow();
+  const nodeColor = useMemo(() => (node: Node) => getNodeColor(node), []);
 
-  // Memoize node color function to avoid re-renders
-  const nodeColor = useMemo(() => {
-    return (node: Node) => getNodeColor(node);
-  }, []);
-
-  const nodeStrokeColor = useMemo(() => {
-    return (node: Node) => getNodeStroke(node);
-  }, []);
-
-  const maskColor = 'rgba(0, 0, 0, 0.6)';
-
-  // Get position classes
-  const positionClasses = {
-    'top-left': 'top-4 left-4',
-    'top-right': 'top-4 right-4',
-    'bottom-left': 'bottom-4 left-4',
+  const positionClasses: Record<string, string> = {
+    'top-left':     'top-4 left-4',
+    'top-right':    'top-4 right-4',
+    'bottom-left':  'bottom-4 left-4',
     'bottom-right': 'bottom-4 right-4',
   };
 
+  const w = compact ? 160 : 200;
+  const h = compact ? 120 : 150;
+
   return (
-    <div className={`
-      ${positionClasses[position]}
-      transition-all duration-200
-      ${compact ? 'scale-75 origin-bottom-right' : ''}
-    `}>
+    <div className={`${positionClasses[position]} transition-all duration-200 ${compact ? 'scale-75 origin-bottom-right' : ''}`}>
+      {/* Make minimap edges visible on dark background */}
+      <style>{`
+        .react-flow__minimap svg path.react-flow__minimap-edge {
+          stroke: rgba(255,255,255,0.4) !important;
+          stroke-width: 1.5px !important;
+          fill: none !important;
+        }
+      `}</style>
+
       <ReactFlowMiniMap
         nodeColor={nodeColor}
-        nodeStrokeColor={nodeStrokeColor}
-        maskColor={maskColor}
-        pannable={true}
-        zoomable={true}
-        // Hide labels in compact mode
-        nodeComponent={showLabels ? undefined : () => null}
-        // Custom styling
-        className="!bg-black !border-2 !border-white/5 !rounded-lg !shadow-lg"
-        style={{
-          width: compact ? 160 : 200,
-          height: compact ? 120 : 150,
-        }}
+        nodeComponent={MiniMapNodeRenderer}
+        maskColor="rgba(0,0,0,0.55)"
+        pannable
+        zoomable
+        style={{ width: w, height: h, background: '#0a0a0a', border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: 8 }}
         {...props}
       />
     </div>
@@ -133,7 +186,7 @@ export const MiniMapWithLegend: React.FC<{
               .sort(([, a], [, b]) => b - a)
               .slice(0, 10)
               .map(([type, count]) => {
-                const metadata = NODE_TYPES_METADATA[type];
+                const color = NODE_COLORS[type] ?? '#6b7280';
                 return (
                   <div
                     key={type}
@@ -141,9 +194,9 @@ export const MiniMapWithLegend: React.FC<{
                   >
                     <div
                       className="w-3 h-3 rounded"
-                      style={{ backgroundColor: metadata?.color || '#6b7280' }}
+                      style={{ backgroundColor: color }}
                     />
-                    <span className="flex-1 truncate">{metadata?.displayName || type}</span>
+                    <span className="flex-1 truncate">{type}</span>
                     <span className="font-mono text-gray-500">{count}</span>
                   </div>
                 );

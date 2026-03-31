@@ -55,8 +55,11 @@ export class HttpRequestNode extends BaseNode {
   async execute(context: ExecutionContext): Promise<NodeExecutionResult> {
     try {
       const config = this.config as HttpRequestConfig;
+      console.log('🔍 HttpRequestNode.execute() - Full config:', JSON.stringify(config, null, 2));
       const url = this.resolveVariables(config.url, context);
+      console.log('🌐 HttpRequestNode - Resolved URL:', url);
       const method = (config.method || 'GET').toUpperCase();
+      console.log('📋 HttpRequestNode - Method:', method);
 
       // Validate URL format
       this.validateUrl(url);
@@ -77,12 +80,41 @@ export class HttpRequestNode extends BaseNode {
 
       // Add body for methods that support it
       if (['POST', 'PUT', 'PATCH'].includes(method) && config.body) {
-        const body = this.resolveVariables(config.body, context);
+        let body = this.resolveVariables(config.body, context);
+        
+        // Check if variables were not resolved (still contain {{ }})
+        if (typeof body === 'string' && body.includes('{{')) {
+          console.warn('⚠️ HttpRequestNode - Unresolved variables in body:', body);
+          throw new Error(`Unable to resolve variables in body: ${body}. Make sure the node has input data or the referenced variables exist.`);
+        }
+        
         // Set content-type if not already set
         if (!axiosConfig.headers['Content-Type'] && !axiosConfig.headers['content-type']) {
           axiosConfig.headers['Content-Type'] = 'application/json';
         }
-        axiosConfig.data = typeof body === 'string' ? body : JSON.stringify(body);
+        
+        // Handle body based on Content-Type
+        const contentType = axiosConfig.headers['Content-Type'] || axiosConfig.headers['content-type'];
+        if (contentType?.includes('application/json')) {
+          // For JSON content-type:
+          // - If body is already an object/array, stringify it
+          // - If body is a string, try to parse it as JSON first
+          if (typeof body === 'string') {
+            try {
+              // Try to parse as JSON to validate/normalize
+              const parsed = JSON.parse(body);
+              axiosConfig.data = JSON.stringify(parsed);
+            } catch {
+              // Not valid JSON, wrap it as a JSON string value
+              axiosConfig.data = JSON.stringify(body);
+            }
+          } else {
+            axiosConfig.data = JSON.stringify(body);
+          }
+        } else {
+          // For non-JSON content types, send as-is or stringify
+          axiosConfig.data = typeof body === 'string' ? body : JSON.stringify(body);
+        }
       }
 
       // Add query parameters
@@ -101,8 +133,15 @@ export class HttpRequestNode extends BaseNode {
         ? await this.executeWithRetry(axiosConfig, config.retry)
         : await axios(axiosConfig);
 
+      console.log('✅ HttpRequestNode - Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: axiosConfig.url
+      });
+
       // Check if response should be treated as error
       if (!config.options?.ignoreResponseCode && response.status >= 400) {
+        console.warn('⚠️ HttpRequestNode - Response status >= 400, treating as error');
         throw this.createHttpError(response);
       }
 
@@ -122,6 +161,16 @@ export class HttpRequestNode extends BaseNode {
         },
       };
     } catch (error: any) {
+      console.error('❌ HttpRequestNode execution error:', {
+        code: error.code,
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data
+        } : undefined,
+        stack: error.stack
+      });
       return {
         success: false,
         error: this.formatErrorMessage(error),
@@ -374,7 +423,13 @@ export class HttpRequestNode extends BaseNode {
    * Replace {{ $json.* }} variables in a string
    */
   private replaceVariables(template: string, context: ExecutionContext): string {
-    return template.replace(/\{\{\s*\$(json|workflow|node)\.([\w.]+)\s*\}\}/g, (match, source, path) => {
+    // Remove surrounding backticks if present (from frontend expression mode)
+    let cleaned = template;
+    if (cleaned.startsWith('`') && cleaned.endsWith('`')) {
+      cleaned = cleaned.slice(1, -1);
+    }
+    
+    return cleaned.replace(/\{\{\s*\$(json|workflow|node)\.([\w.]+)\s*\}\}/g, (match, source, path) => {
       if (source === 'json') {
         const value = this.getNestedValue(context.$json, path);
         return value !== undefined ? String(value) : match;

@@ -93,24 +93,43 @@ export class MySQLNode extends BaseNode {
       throw new Error('query is required');
     }
 
-    // In production, would use mysql2/promise
-    // const connection = await this.pool.getConnection();
-    // const [results, fields] = await connection.execute(query, params);
+    try {
+      // Try to load mysql2/promise
+      const mysql = require('mysql2/promise');
+      
+      // Create connection
+      const connection = await mysql.createConnection({
+        host: this.config.connection.host,
+        port: this.config.connection.port || 3306,
+        user: this.config.connection.user,
+        password: this.config.connection.password,
+        database: this.config.database,
+        connectTimeout: this.config.options?.connectTimeout || 10000,
+      });
 
-    // Mock implementation for now
-    const results = [
-      { id: 1, name: 'Sample Row 1', email: 'user1@example.com', created_at: new Date() },
-      { id: 2, name: 'Sample Row 2', email: 'user2@example.com', created_at: new Date() },
-    ];
+      try {
+        const [results, fields] = await connection.execute(query, params);
+        
+        await connection.end();
 
-    return {
-      success: true,
-      data: {
-        results,
-        rowCount: results.length,
-        fields: Object.keys(results[0]),
-      },
-    };
+        return {
+          success: true,
+          data: {
+            results: Array.isArray(results) ? results : [results],
+            rowCount: Array.isArray(results) ? results.length : 1,
+            fields: fields ? fields.map((f: any) => f.name) : [],
+          },
+        };
+      } catch (queryError: any) {
+        await connection.end();
+        throw queryError;
+      }
+    } catch (error: any) {
+      if (error.code === 'MODULE_NOT_FOUND') {
+        throw new Error('mysql2 package not installed. Run: npm install mysql2');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -124,17 +143,38 @@ export class MySQLNode extends BaseNode {
       throw new Error('query is required for insert operation');
     }
 
-    // In production, would use mysql2/promise
-    // const connection = await this.pool.getConnection();
-    // const [result] = await connection.execute(query, params);
+    try {
+      const mysql = require('mysql2/promise');
 
-    return {
-      success: true,
-      data: {
-        insertId: 123, // result.insertId
-        affectedRows: 1, // result.affectedRows
-      },
-    };
+      const connection = await mysql.createConnection({
+        host: this.config.connection.host,
+        port: this.config.connection.port || 3306,
+        user: this.config.connection.user,
+        password: this.config.connection.password,
+        database: this.config.database,
+      });
+
+      try {
+        const [result] = await connection.execute(query, params);
+        await connection.end();
+
+        return {
+          success: true,
+          data: {
+            insertId: (result as any).insertId,
+            affectedRows: (result as any).affectedRows,
+          },
+        };
+      } catch (queryError: any) {
+        await connection.end();
+        throw queryError;
+      }
+    } catch (error: any) {
+      if (error.code === 'MODULE_NOT_FOUND') {
+        throw new Error('mysql2 package not installed. Run: npm install mysql2');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -148,17 +188,38 @@ export class MySQLNode extends BaseNode {
       throw new Error('query is required for update operation');
     }
 
-    // In production, would use mysql2/promise
-    // const connection = await this.pool.getConnection();
-    // const [result] = await connection.execute(query, params);
+    try {
+      const mysql = require('mysql2/promise');
 
-    return {
-      success: true,
-      data: {
-        affectedRows: 1, // result.affectedRows
-        changedRows: 1,
-      },
-    };
+      const connection = await mysql.createConnection({
+        host: this.config.connection.host,
+        port: this.config.connection.port || 3306,
+        user: this.config.connection.user,
+        password: this.config.connection.password,
+        database: this.config.database,
+      });
+
+      try {
+        const [result] = await connection.execute(query, params);
+        await connection.end();
+
+        return {
+          success: true,
+          data: {
+            affectedRows: (result as any).affectedRows,
+            changedRows: (result as any).changedRows,
+          },
+        };
+      } catch (queryError: any) {
+        await connection.end();
+        throw queryError;
+      }
+    } catch (error: any) {
+      if (error.code === 'MODULE_NOT_FOUND') {
+        throw new Error('mysql2 package not installed. Run: npm install mysql2');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -172,16 +233,37 @@ export class MySQLNode extends BaseNode {
       throw new Error('query is required for delete operation');
     }
 
-    // In production, would use mysql2/promise
-    // const connection = await this.pool.getConnection();
-    // const [result] = await connection.execute(query, params);
+    try {
+      const mysql = require('mysql2/promise');
 
-    return {
-      success: true,
-      data: {
-        affectedRows: 1, // result.affectedRows
-      },
-    };
+      const connection = await mysql.createConnection({
+        host: this.config.connection.host,
+        port: this.config.connection.port || 3306,
+        user: this.config.connection.user,
+        password: this.config.connection.password,
+        database: this.config.database,
+      });
+
+      try {
+        const [result] = await connection.execute(query, params);
+        await connection.end();
+
+        return {
+          success: true,
+          data: {
+            affectedRows: (result as any).affectedRows,
+          },
+        };
+      } catch (queryError: any) {
+        await connection.end();
+        throw queryError;
+      }
+    } catch (error: any) {
+      if (error.code === 'MODULE_NOT_FOUND') {
+        throw new Error('mysql2 package not installed. Run: npm install mysql2');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -194,26 +276,47 @@ export class MySQLNode extends BaseNode {
       throw new Error('queries array is required for executeBatch');
     }
 
-    // In production, would use mysql2/promise with transactions
-    // const connection = await this.pool.getConnection();
-    // await connection.beginTransaction();
-    // try {
-    //   for (const q of queries) {
-    //     await connection.execute(q.query, q.params);
-    //   }
-    //   await connection.commit();
-    // } catch (error) {
-    //   await connection.rollback();
-    //   throw error;
-    // }
+    try {
+      const mysql = require('mysql2/promise');
 
-    return {
-      success: true,
-      data: {
-        executed: queries.length,
-        queries,
-      },
-    };
+      const connection = await mysql.createConnection({
+        host: this.config.connection.host,
+        port: this.config.connection.port || 3306,
+        user: this.config.connection.user,
+        password: this.config.connection.password,
+        database: this.config.database,
+      });
+
+      try {
+        await connection.beginTransaction();
+
+        const results = [];
+        for (const q of queries) {
+          const [result] = await connection.execute(q.query, q.params || []);
+          results.push(result);
+        }
+
+        await connection.commit();
+        await connection.end();
+
+        return {
+          success: true,
+          data: {
+            executed: queries.length,
+            results,
+          },
+        };
+      } catch (queryError: any) {
+        await connection.rollback();
+        await connection.end();
+        throw queryError;
+      }
+    } catch (error: any) {
+      if (error.code === 'MODULE_NOT_FOUND') {
+        throw new Error('mysql2 package not installed. Run: npm install mysql2');
+      }
+      throw error;
+    }
   }
 
   /**

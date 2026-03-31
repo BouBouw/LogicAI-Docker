@@ -105,9 +105,11 @@ docker run -d \
   --name $CONTAINER_NAME \
   -p $PORT:3000 \
   -v $VOLUME_NAME:/app/data \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   -e INSTANCE_ID="$INSTANCE_ID" \
   -e INSTANCE_NAME="$INSTANCE_NAME" \
   -e EXTERNAL_PORT="$PORT" \
+  -e JWT_SECRET="logicai-instance-secret-key-change-in-production" \
   --restart unless-stopped \
   logicai-n8n:latest
 

@@ -32,11 +32,6 @@ export type CredentialType =
   | 'twitter'
   | 'linkedin'
   | 'tiktok'
-  | 'mysql'
-  | 'postgresql'
-  | 'mongodb'
-  | 'redis'
-  | 'supabase'
   | 'custom';
 
 export interface Credential {
@@ -154,36 +149,6 @@ export const CREDENTIAL_FIELDS: Partial<Record<CredentialType, CredentialField[]
   ],
 
   // Databases
-  mysql: [
-    { key: 'host', label: 'Host', type: 'text', required: true, placeholder: 'localhost' },
-    { key: 'port', label: 'Port', type: 'number', required: true, defaultValue: 3306 },
-    { key: 'database', label: 'Database', type: 'text', required: true, placeholder: 'database_name' },
-    { key: 'username', label: 'Username', type: 'text', required: true },
-    { key: 'password', label: 'Password', type: 'password', required: true },
-  ],
-  postgresql: [
-    { key: 'host', label: 'Host', type: 'text', required: true, placeholder: 'localhost' },
-    { key: 'port', label: 'Port', type: 'number', required: true, defaultValue: 5432 },
-    { key: 'database', label: 'Database', type: 'text', required: true, placeholder: 'database_name' },
-    { key: 'username', label: 'Username', type: 'text', required: true },
-    { key: 'password', label: 'Password', type: 'password', required: true },
-  ],
-  mongodb: [
-    { key: 'connectionString', label: 'Connection String', type: 'password', required: true, placeholder: 'mongodb://localhost:27017', masked: true },
-    { key: 'database', label: 'Database', type: 'text', required: true, placeholder: 'database_name' },
-  ],
-  redis: [
-    { key: 'host', label: 'Host', type: 'text', required: true, placeholder: 'localhost' },
-    { key: 'port', label: 'port', type: 'number', required: true, defaultValue: 6379 },
-    { key: 'password', label: 'Password', type: 'password', required: false },
-    { key: 'db', label: 'Database', type: 'number', required: false, defaultValue: 0 },
-  ],
-  supabase: [
-    { key: 'url', label: 'Project URL', type: 'text', required: true, placeholder: 'https://xxx.supabase.co' },
-    { key: 'anonKey', label: 'Anon Key', type: 'password', required: true, placeholder: 'eyJhbGciOiJIUzI1NiJ9...', masked: true },
-    { key: 'serviceRoleKey', label: 'Service Role Key', type: 'password', required: false, placeholder: 'eyJhbGciOiJIUzI1NiJ9...', masked: true },
-  ],
-
   // Productivity
   google: [
     { key: 'oauthClientId', label: 'OAuth Client ID', type: 'text', required: true },
@@ -211,6 +176,30 @@ export const CREDENTIAL_FIELDS: Partial<Record<CredentialType, CredentialField[]
   ],
   figma: [
     { key: 'accessToken', label: 'Access Token', type: 'password', required: true, placeholder: 'figd_xxx...', masked: true },
+  ],
+
+  // Communication (missing entries)
+  slack: [
+    { key: 'botToken', label: 'Bot Token', type: 'password', required: true, placeholder: 'xoxb-...', description: 'Slack bot token', masked: true },
+    { key: 'signingSecret', label: 'Signing Secret', type: 'password', required: false, placeholder: 'Slack signing secret', masked: true },
+  ],
+  discord: [
+    { key: 'botToken', label: 'Bot Token', type: 'password', required: true, placeholder: 'Token de votre application Discord', description: 'Discord bot token', masked: true },
+    { key: 'clientId', label: 'Client ID', type: 'text', required: false, placeholder: '123456789012345678' },
+    { key: 'clientSecret', label: 'Client Secret', type: 'password', required: false, masked: true },
+  ],
+  telegram: [
+    { key: 'botToken', label: 'Bot Token', type: 'password', required: true, placeholder: '123456789:AAF...', description: 'Token fourni par @BotFather', masked: true },
+  ],
+  whatsapp: [
+    { key: 'accessToken', label: 'Access Token', type: 'password', required: true, description: 'WhatsApp Business API access token', masked: true },
+    { key: 'phoneNumberId', label: 'Phone Number ID', type: 'text', required: true, placeholder: '123456789' },
+    { key: 'businessAccountId', label: 'Business Account ID', type: 'text', required: false },
+  ],
+  tiktok: [
+    { key: 'clientKey', label: 'Client Key', type: 'text', required: true },
+    { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true, masked: true },
+    { key: 'accessToken', label: 'Access Token', type: 'password', required: false, masked: true },
   ],
 };
 
@@ -245,14 +234,60 @@ export const SERVICE_INFO: Partial<Record<CredentialType, {
   trello: { name: 'Trello', description: 'Project management', icon: '📋', category: 'productivity' },
   github: { name: 'GitHub', description: 'Development', icon: '🐙', category: 'devops' },
   figma: { name: 'Figma', description: 'Design tool', icon: '🎨', category: 'devops' },
-  mysql: { name: 'MySQL', description: 'Database', icon: '🐬', category: 'database' },
-  postgresql: { name: 'PostgreSQL', description: 'Database', icon: '🐘', category: 'database' },
-  mongodb: { name: 'MongoDB', description: 'NoSQL database', icon: '🍃', category: 'database' },
-  redis: { name: 'Redis', description: 'Key-value store', icon: '🔴', category: 'database' },
-  supabase: { name: 'Supabase', description: 'Backend as a service', icon: '⚡', category: 'database' },
   slack: { name: 'Slack', description: 'Team communication', icon: '💬', category: 'communication' },
   discord: { name: 'Discord', description: 'Team communication', icon: '🎮', category: 'communication' },
   telegram: { name: 'Telegram', description: 'Messaging', icon: '✈️', category: 'communication' },
   whatsapp: { name: 'WhatsApp', description: 'Messaging', icon: '📱', category: 'communication' },
   custom: { name: 'Custom', description: 'Custom service', icon: '🔧', category: 'other' },
 };
+
+// Maps node type → credential type required by that node
+export const NODE_CREDENTIAL_MAP: Partial<Record<string, CredentialType>> = {
+  // AI
+  openAI: 'openai', anthropic: 'anthropic', gemini: 'google',
+  // Payment
+  stripe: 'stripe', paypal: 'paypal',
+  // CRM
+  salesforce: 'salesforce', hubspot: 'hubspot', zendesk: 'zendesk',
+  // Communication
+  slack: 'slack', slackSendMessage: 'slack', slackUpdateMessage: 'slack', slackUploadFile: 'slack',
+  discord: 'discord', discordSendMessage: 'discord', discordSendEmbed: 'discord', discordManageChannel: 'discord',
+  telegram: 'telegram', telegramSendMessage: 'telegram', telegramSendPhoto: 'telegram', telegramBotCommand: 'telegram',
+  twilio: 'twilio', twilioSendSMS: 'twilio', twilioReceiveSMS: 'twilio', twilioMakeCall: 'twilio', twilioSendWhatsApp: 'twilio',
+  whatsapp: 'whatsapp', whatsappSendMessage: 'whatsapp', whatsappSendMedia: 'whatsapp', whatsappSendLocation: 'whatsapp',
+  sendgrid: 'sendgrid', mailchimp: 'mailchimp',
+  // Social
+  instagram: 'instagram', instagramPost: 'instagram', instagramStory: 'instagram', instagramReels: 'instagram',
+  facebook: 'facebook', facebookPost: 'facebook', facebookUploadPhoto: 'facebook', facebookPagePost: 'facebook',
+  twitter: 'twitter', twitterTweet: 'twitter', twitterReply: 'twitter', twitterLike: 'twitter', twitterRetweet: 'twitter',
+  linkedin: 'linkedin', linkedinPost: 'linkedin', linkedinShareArticle: 'linkedin', linkedinMessage: 'linkedin',
+  tiktok: 'tiktok', tiktokUploadVideo: 'tiktok', tiktokGetVideoInfo: 'tiktok', tiktokGetUserInfo: 'tiktok',
+  // Productivity
+  googleSheets: 'google', googleDrive: 'google',
+  notion: 'notion', airtable: 'airtable', trello: 'trello',
+  // Storage
+  dropbox: 'dropbox', onedrive: 'onedrive', box: 'box',
+  // DevOps
+  gitHub: 'github', figma: 'figma',
+};
+
+/**
+ * Maps credential field keys → node config field keys where they differ (1:1 by default).
+ * Used when applying a saved credential to a node's config.
+ */
+export const CREDENTIAL_FIELD_MAP: Partial<Record<CredentialType, Record<string, string>>> = {
+  stripe: { secretKey: 'apiKey' },
+};
+
+/** Apply a stored credential's values to a node config patch object */
+export function applyCredentialToConfig(
+  credType: CredentialType,
+  fields: Record<string, string>,
+): Record<string, unknown> {
+  const mapping = CREDENTIAL_FIELD_MAP[credType] ?? {};
+  const patch: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(fields)) {
+    patch[mapping[key] ?? key] = value;
+  }
+  return patch;
+}

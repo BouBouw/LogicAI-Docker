@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Search, Star, Clock, TrendingUp, Filter } from 'lucide-react';
 import {
   WORKFLOW_TEMPLATES,
@@ -313,6 +314,7 @@ const TemplateDetailModal: React.FC<{
   onClose: () => void;
   onApply: () => void;
 }> = ({ template, onClose, onApply }) => {
+  const { t } = useTranslation();
   const categoryConfig = CATEGORY_CONFIG[template.category];
 
   return (
@@ -409,13 +411,13 @@ const TemplateDetailModal: React.FC<{
               onClick={onClose}
               className="flex-1 px-4 py-2 border border-white/10 rounded-md text-white hover:bg-white/10 transition-colors"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               onClick={onApply}
               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
             >
-              Utiliser ce modèle
+              {t('templates.useTemplate')}
             </button>
           </div>
         </div>

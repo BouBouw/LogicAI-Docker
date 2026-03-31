@@ -9,7 +9,9 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageSquare, X, Trash2, Bot, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { Send, MessageSquare, X, Trash2, Bot, User, ChevronDown, ChevronUp, Command } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 
 export interface ChatMessage {
   id: string;
@@ -38,9 +40,16 @@ export default function ChatPanel({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showCommandSuggestions, setShowCommandSuggestions] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { t } = useTranslation();
+
+  // Available commands
+  const commands = [
+    { name: '/logik', description: t('chat.commands.logik') },
+  ];
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -69,6 +78,7 @@ export default function ChatPanel({
 
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
+    setShowCommandSuggestions(false);
     setIsLoading(true);
 
     try {
@@ -87,7 +97,7 @@ export default function ChatPanel({
       const errorMessage: ChatMessage = {
         id: `msg-${Date.now()}-error`,
         role: 'system',
-        content: `Erreur: ${error.message || 'Une erreur est survenue'}`,
+        content: t('chat.error', { msg: error.message || '' }),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -100,8 +110,36 @@ export default function ChatPanel({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      if (showCommandSuggestions) {
+        // Auto-complete first command
+        const firstCommand = commands[0].name;
+        setInput(firstCommand + ' ');
+        setShowCommandSuggestions(false);
+        inputRef.current?.focus();
+      } else {
+        handleSend();
+      }
+    } else if (e.key === 'Escape') {
+      setShowCommandSuggestions(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setInput(value);
+    
+    // Show command suggestions when typing /
+    if (value === '/' || (value.startsWith('/') && !value.includes(' '))) {
+      setShowCommandSuggestions(true);
+    } else {
+      setShowCommandSuggestions(false);
+    }
+  };
+
+  const selectCommand = (command: string) => {
+    setInput(command + ' ');
+    setShowCommandSuggestions(false);
+    inputRef.current?.focus();
   };
 
   const handleClearHistory = () => {
@@ -111,20 +149,14 @@ export default function ChatPanel({
   if (!isOpen) return null;
 
   return (
-    <div
-      className={`bg-bg-card border-t border-white/10 transition-all duration-300 h-80 flex flex-col`}
-      style={{
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
-      }}
-    >
+    <div className="bg-bg-card flex flex-col h-full overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
         <div className="flex items-center gap-2">
           <div>
-            <h3 className="text-sm font-semibold text-white">Chat Workflow</h3>
+            <h3 className="text-sm font-semibold text-white">{t('chat.title')}</h3>
             <p className="text-xs text-gray-500">
-              {workflowId ? workflowId.slice(0, 8) : 'Test'} {messages.length > 0 && `• ${messages.length} messages`}
+              {workflowId ? workflowId.slice(0, 8) : 'Test'} {messages.length > 0 && t('chat.messagesCount', { count: messages.length })}
             </p>
           </div>
         </div>
@@ -132,14 +164,14 @@ export default function ChatPanel({
           <button
             onClick={handleClearHistory}
             className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-            title="Effacer l'historique"
+            title={t('chat.clearHistory')}
           >
             <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-400" />
           </button>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-            title={isExpanded ? 'Réduire' : 'Agrandir'}
+            title={isExpanded ? t('chat.collapse') : t('chat.expand')}
           >
             {isExpanded ? (
               <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -150,7 +182,7 @@ export default function ChatPanel({
           <button
             onClick={onClose}
             className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-            title="Fermer"
+            title={t('chat.close')}
           >
             <X className="w-4 h-4 text-gray-400" />
           </button>
@@ -169,61 +201,128 @@ export default function ChatPanel({
                 <div className="w-16 h-16 bg-brand-blue/10 rounded-full flex items-center justify-center mb-3">
                   <MessageSquare className="w-8 h-8 text-brand-blue" />
                 </div>
-                <h4 className="text-sm font-medium text-white mb-1">Commencez la conversation</h4>
+                <h4 className="text-sm font-medium text-white mb-1">{t('chat.emptyTitle')}</h4>
                 <p className="text-xs text-gray-500 max-w-[200px]">
-                  Envoyez un message pour tester votre workflow
+                  {t('chat.emptySubtitle')}
                 </p>
               </div>
             ) : (
-              messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex items-start gap-2 ${
-                    message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-                  }`}
-                >
+              messages.map((message) => {
+                // Detect /logik command for special formatting
+                const isCommand = message.role === 'user' && message.content.trim().startsWith('/');
+                
+                let commandName = '';
+                let commandText = message.content;
+                
+                if (isCommand) {
+                  const spaceIndex = message.content.indexOf(' ');
+                  if (spaceIndex > 0) {
+                    commandName = message.content.substring(0, spaceIndex);
+                    commandText = message.content.substring(spaceIndex + 1);
+                  } else {
+                    commandName = message.content;
+                    commandText = '';
+                  }
+                }
+
+                return (
                   <div
-                    className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      message.role === 'user'
-                        ? 'bg-brand-blue text-white'
-                        : message.role === 'assistant'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-red-600 text-white'
+                    key={message.id}
+                    className={`flex items-start gap-2 ${
+                      message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
                     }`}
                   >
-                    {message.role === 'user' ? (
-                      <User className="w-4 h-4" />
-                    ) : message.role === 'assistant' ? (
-                      <Bot className="w-4 h-4" />
-                    ) : (
-                      <X className="w-4 h-4" />
-                    )}
-                  </div>
-                  <div
-                    className={`flex-1 max-w-[75%] ${
-                      message.role === 'user' ? 'items-end' : 'items-start'
-                    } flex flex-col`}
-                  >
                     <div
-                      className={`px-3 py-2 rounded-lg ${
+                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                         message.role === 'user'
-                          ? 'bg-brand-blue text-white rounded-br-sm'
+                          ? 'bg-brand-blue text-white'
                           : message.role === 'assistant'
-                          ? 'bg-gray-700 text-gray-100 rounded-bl-sm'
-                          : 'bg-red-600/20 border border-red-600/50 text-red-400'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-red-600 text-white'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                      {message.role === 'user' ? (
+                        <User className="w-4 h-4" />
+                      ) : message.role === 'assistant' ? (
+                        <Bot className="w-4 h-4" />
+                      ) : (
+                        <X className="w-4 h-4" />
+                      )}
                     </div>
-                    <span className="text-xs text-gray-600 mt-1 px-1">
-                      {message.timestamp.toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
+                    <div
+                      className={`flex-1 max-w-[75%] ${
+                        message.role === 'user' ? 'items-end' : 'items-start'
+                      } flex flex-col`}
+                    >
+                      {isCommand ? (
+                        /* Command formatting */
+                        <div
+                          className={`px-3 py-2 rounded-lg bg-brand-blue text-white rounded-br-sm w-full`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Command className="w-3 h-3" />
+                            <span className="text-xs font-mono font-semibold opacity-90">
+                              {commandName}
+                            </span>
+                          </div>
+                          {commandText && (
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {commandText}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        /* Regular message or assistant with Markdown */
+                        <div
+                          className={`px-3 py-2 rounded-lg ${
+                            message.role === 'user'
+                              ? 'bg-brand-blue text-white rounded-br-sm'
+                              : message.role === 'assistant'
+                              ? 'bg-gray-700 text-gray-100 rounded-bl-sm prose prose-invert prose-sm max-w-none'
+                              : 'bg-red-600/20 border border-red-600/50 text-red-400'
+                          }`}
+                        >
+                          {message.role === 'assistant' ? (
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                                li: ({ children }) => <li className="text-sm">{children}</li>,
+                                code: ({ inline, children }: any) => 
+                                  inline ? (
+                                    <code className="bg-gray-800 px-1.5 py-0.5 rounded text-xs font-mono text-blue-300">
+                                      {children}
+                                    </code>
+                                  ) : (
+                                    <code className="block bg-gray-800 p-2 rounded text-xs font-mono overflow-x-auto my-2">
+                                      {children}
+                                    </code>
+                                  ),
+                                strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                                em: ({ children }) => <em className="italic">{children}</em>,
+                                h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-white">{children}</h1>,
+                                h2: ({ children }) => <h2 className="text-base font-bold mb-2 text-white">{children}</h2>,
+                                h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-white">{children}</h3>,
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          ) : (
+                            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                          )}
+                        </div>
+                      )}
+                      <span className="text-xs text-gray-600 mt-1 px-1">
+                        {message.timestamp.toLocaleTimeString('fr-FR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
             {isLoading && (
               <div className="flex items-start gap-2">
@@ -243,37 +342,60 @@ export default function ChatPanel({
           </div>
 
           {/* Input Area */}
-          <div className="px-4 py-3 border-t border-white/10">
+          <div className="px-4 py-3 border-t border-white/10 relative">
+            {/* Command suggestions */}
+            {showCommandSuggestions && (
+              <div className="absolute bottom-full left-4 right-4 mb-2 bg-gray-800 border border-white/10 rounded-lg shadow-xl overflow-hidden">
+                {commands
+                  .filter(cmd => cmd.name.toLowerCase().includes(input.toLowerCase()))
+                  .map((cmd) => (
+                    <button
+                      key={cmd.name}
+                      onClick={() => selectCommand(cmd.name)}
+                      className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
+                    >
+                      <Command className="w-4 h-4 text-brand-blue" />
+                      <div>
+                        <div className="text-sm font-mono font-semibold text-white">{cmd.name}</div>
+                        <div className="text-xs text-gray-400">{cmd.description}</div>
+                      </div>
+                    </button>
+                  ))}
+              </div>
+            )}
+            
             <div className="flex items-end gap-2">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Écrivez votre message..."
-                rows={1}
-                disabled={isLoading}
-                className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 max-h-24"
-                style={{
-                  minHeight: '40px',
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.min(target.scrollHeight, 96) + 'px';
-                }}
-              />
+              <div className="flex-1 relative">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t('chat.inputPlaceholder')}
+                  rows={1}
+                  disabled={isLoading}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 max-h-24"
+                  style={{
+                    minHeight: '40px',
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = Math.min(target.scrollHeight, 96) + 'px';
+                  }}
+                />
+              </div>
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
                 className="p-3 bg-brand-blue hover:bg-brand-hover text-white rounded-lg disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
-                title="Envoyer (Entrée)"
+                title={t('chat.sendTitle')}
               >
                 <Send className="w-4 h-4" />
               </button>
             </div>
             <p className="text-xs text-gray-600 mt-2 text-center">
-              Appuyez sur Entrée pour envoyer, Shift+Entrée pour nouvelle ligne
+              {t('chat.hint')}
             </p>
           </div>
         </>

@@ -26,6 +26,7 @@ import { ClickTriggerNode } from './implementations/ClickTriggerNode';
 import { EmailTriggerNode } from './implementations/EmailTriggerNode';
 import { HTTPPollTriggerNode } from './implementations/HTTPPollTriggerNode';
 import { CronTriggerNode } from './implementations/CronTriggerNode';
+import { LogicAITriggerNode } from './implementations/LogicAITriggerNode';
 
 // HTTP & Data nodes
 import { HTMLExtractNode } from './implementations/HTMLExtractNode';
@@ -39,6 +40,8 @@ import { PostgreSQLNode } from './implementations/PostgreSQLNode';
 import { MongoDBNode } from './implementations/MongoDBNode';
 import { RedisNode } from './implementations/RedisNode';
 import { SupabaseNode } from './implementations/SupabaseNode';
+import { FirebaseNode } from './implementations/FirebaseNode';
+import { SQLiteNode } from './implementations/SQLiteNode';
 
 // Communication nodes
 import { EmailNode } from './implementations/EmailNode';
@@ -80,12 +83,19 @@ import { LinearNode } from './implementations/LinearNode';
 import { DropboxNode } from './implementations/DropboxNode';
 import { OneDriveNode } from './implementations/OneDriveNode';
 import { BoxNode } from './implementations/BoxNode';
+import { S3Node } from './implementations/S3Node';
 
 // AI/LLM nodes
 import { OpenAINode } from './implementations/OpenAINode';
 import { AIAgentNode } from './implementations/AIAgentNode';
 import { VectorStoreNode } from './implementations/VectorStoreNode';
 import { EmbeddingsNode } from './implementations/EmbeddingsNode';
+import { AnthropicNode } from './implementations/AnthropicNode';
+import { GeminiNode } from './implementations/GeminiNode';
+import { PerplexityNode } from './implementations/PerplexityNode';
+import { GLMNode } from './implementations/GLMNode';
+import { OpenRouterNode } from './implementations/OpenRouterNode';
+import { OllamaNode } from './implementations/OllamaNode';
 
 // Binary nodes
 import { ReadWriteBinaryFileNode } from './implementations/ReadWriteBinaryFileNode';
@@ -132,6 +142,19 @@ import { FacebookNode } from './implementations/SocialNodes';
 import { TwitterNode } from './implementations/SocialNodes';
 import { LinkedInNode } from './implementations/SocialNodes';
 import { TikTokNode } from './implementations/SocialNodes';
+
+// Streaming & Video platforms
+import { TwitchNode } from './implementations/TwitchNode';
+import { YouTubeNode } from './implementations/YouTubeNode';
+import { KickNode } from './implementations/KickNode';
+import { SnapchatNode } from './implementations/SnapchatNode';
+
+// Logic nodes
+import { LoopNode } from './implementations/LoopNode';
+import { DateNode } from './implementations/DateNode';
+import { UUIDNode } from './implementations/UUIDNode';
+import { TextFormatterNode } from './implementations/TextFormatterNode';
+import { IfNode } from './implementations/IfNode';
 
 import { NodeConfig } from '../types';
 
@@ -185,6 +208,7 @@ export class NodeRegistry {
     this.register('emailTrigger', EmailTriggerNode);
     this.register('httpPollTrigger', HTTPPollTriggerNode);
     this.register('cronTrigger', CronTriggerNode);
+    this.register('logicaiTrigger', LogicAITriggerNode);
 
     // ========== HTTP & DATA INTERFACES ==========
     this.register('httpRequest', HttpRequestNode);
@@ -199,6 +223,8 @@ export class NodeRegistry {
     this.register('mongoDB', MongoDBNode);
     this.register('redis', RedisNode);
     this.register('supabase', SupabaseNode);
+    this.register('firebase', FirebaseNode);
+    this.register('sqlite', SQLiteNode);
 
     // ========== COMMUNICATION & SOCIAL ==========
     this.register('email', EmailNode);
@@ -211,6 +237,12 @@ export class NodeRegistry {
     this.register('twitter', TwitterNode);
     this.register('linkedin', LinkedInNode);
     this.register('tiktok', TikTokNode);
+
+    // ========== STREAMING & VIDEO PLATFORMS ==========
+    this.register('twitch', TwitchNode);
+    this.register('youtube', YouTubeNode);
+    this.register('kick', KickNode);
+    this.register('snapchat', SnapchatNode);
 
     // ========== CLOUD & PRODUCTIVITY ==========
     this.register('googleSheets', GoogleSheetsNode);
@@ -244,21 +276,33 @@ export class NodeRegistry {
     this.register('dropbox', DropboxNode);
     this.register('onedrive', OneDriveNode);
     this.register('box', BoxNode);
+    this.register('s3', S3Node);
 
     // ========== AI & LLM ==========
     this.register('openAI', OpenAINode);
     this.register('aiAgent', AIAgentNode);
     this.register('vectorStore', VectorStoreNode);
     this.register('embeddings', EmbeddingsNode);
+    this.register('anthropic', AnthropicNode);
+    this.register('gemini', GeminiNode);
+    this.register('perplexity', PerplexityNode);
+    this.register('glm', GLMNode);
+    this.register('openrouter', OpenRouterNode);
+    this.register('ollama', OllamaNode);
 
     // ========== BINARY DATA ==========
     this.register('readWriteBinaryFile', ReadWriteBinaryFileNode);
     this.register('compression', CompressionNode);
     this.register('crypto', CryptoNode);
 
-    // ========== LOGIC NODES (already registered above) ==========
+    // ========== LOGIC NODES ==========
     this.register('setVariable', SetVariableNode);
     this.register('condition', ConditionNode);
+    this.register('loop', LoopNode);
+    this.register('date', DateNode);
+    this.register('uuid', UUIDNode);
+    this.register('textFormatter', TextFormatterNode);
+    this.register('if', IfNode);
 
     // ========== EXCLUSIVE CUSTOM NODES ==========
     this.register('humanInTheLoop', HumanInTheLoopNode);
@@ -393,6 +437,8 @@ export class NodeRegistry {
       { type: 'mongoDB', icon: '🍃', category: 'database', description: 'MongoDB NoSQL operations' },
       { type: 'redis', icon: '🔴', category: 'database', description: 'Redis key-value cache operations' },
       { type: 'supabase', icon: '⚡', category: 'database', description: 'Supabase backend integration (Firebase alternative)' },
+      { type: 'firebase', icon: '🔥', category: 'database', description: 'Firebase Firestore and Realtime Database' },
+      { type: 'sqlite', icon: '💾', category: 'database', description: 'SQLite lightweight embedded database' },
 
       // COMMUNICATION (Official Brand Icons)
       { type: 'email', icon: '📧', category: 'communication', description: 'Send emails via SMTP' },
@@ -408,6 +454,7 @@ export class NodeRegistry {
       { type: 'twitter', icon: '🐦', category: 'social', description: 'Post tweets and manage Twitter/X account' },
       { type: 'linkedin', icon: '💼', category: 'social', description: 'Share posts and articles on LinkedIn' },
       { type: 'tiktok', icon: '🎵', category: 'social', description: 'Manage TikTok content and analytics' },
+      { type: 'snapchat', icon: '👻', category: 'social', description: 'Share Snaps and Stories on Snapchat' },
 
       // CLOUD PRODUCTIVITY (Official Brand Icons)
       { type: 'googleSheets', icon: '📊', category: 'productivity', description: 'Read/write Google Sheets spreadsheets' },
@@ -415,6 +462,11 @@ export class NodeRegistry {
       { type: 'airtable', icon: '📋', category: 'productivity', description: 'Airtable database and spreadsheet operations' },
       { type: 'notion', icon: '📝', category: 'productivity', description: 'Notion pages, databases, and docs' },
       { type: 'trello', icon: '📋', category: 'productivity', description: 'Trello board and card operations' },
+
+      // STREAMING PLATFORMS (Official Brand Icons)
+      { type: 'twitch', icon: '🎮', category: 'streaming', description: 'Twitch streams, chat, and moderation' },
+      { type: 'youtube', icon: '📺', category: 'streaming', description: 'YouTube videos, playlists, and analytics' },
+      { type: 'kick', icon: '⚡', category: 'streaming', description: 'Kick streaming platform integration' },
 
       // ========== PAYMENT & E-COMMERCE (Official Brand Icons) ==========
       { type: 'stripe', icon: '💳', category: 'payment', description: 'Stripe payment processing, subscriptions, invoices' },
@@ -440,9 +492,16 @@ export class NodeRegistry {
       { type: 'dropbox', icon: '📦', category: 'storage', description: 'Dropbox file storage and sharing' },
       { type: 'onedrive', icon: '☁️', category: 'storage', description: 'Microsoft OneDrive cloud storage' },
       { type: 'box', icon: '📦', category: 'storage', description: 'Box cloud storage and collaboration' },
+      { type: 's3', icon: '🗄️', category: 'storage', description: 'Amazon S3 object storage operations' },
 
       // AI/LLM (Official Brand Icons)
       { type: 'openAI', icon: '🤖', category: 'ai', description: 'OpenAI GPT-4, DALL-E, Whisper API integration' },
+      { type: 'anthropic', icon: '🧠', category: 'ai', description: 'Anthropic Claude AI assistant' },
+      { type: 'gemini', icon: '✨', category: 'ai', description: 'Google Gemini AI models' },
+      { type: 'perplexity', icon: '🔍', category: 'ai', description: 'Perplexity AI search and reasoning' },
+      { type: 'glm', icon: '🌟', category: 'ai', description: 'GLM (ChatGLM) AI models' },
+      { type: 'openrouter', icon: '🔀', category: 'ai', description: 'OpenRouter unified LLM API gateway' },
+      { type: 'ollama', icon: '🦙', category: 'ai', description: 'Ollama local LLM models' },
       { type: 'aiAgent', icon: '🧠', category: 'ai', description: 'Orchestrate LLM chains and agents' },
       { type: 'vectorStore', icon: '🗄️', category: 'ai', description: 'Vector database operations (Pinecone, Chroma)' },
       { type: 'embeddings', icon: '🔢', category: 'ai', description: 'Generate vector embeddings for semantic search' },
@@ -455,6 +514,11 @@ export class NodeRegistry {
       // ADDITIONAL LOGIC
       { type: 'setVariable', icon: '📝', category: 'logic', description: 'Set or modify variables in data flow' },
       { type: 'condition', icon: '❓', category: 'logic', description: 'Split workflow based on condition' },
+      { type: 'loop', icon: '🔄', category: 'logic', description: 'Loop over arrays or repeat actions' },
+      { type: 'date', icon: '📅', category: 'logic', description: 'Format, parse, and manipulate dates' },
+      { type: 'uuid', icon: '🆔', category: 'logic', description: 'Generate unique identifiers (UUID/GUID)' },
+      { type: 'textFormatter', icon: '📝', category: 'logic', description: 'Format and transform text strings' },
+      { type: 'if', icon: '❓', category: 'logic', description: 'Conditional branching (if/else logic)' },
 
       // EXCLUSIVE CUSTOM NODES
       { type: 'humanInTheLoop', icon: '👤', category: 'advanced', description: 'Pause & approval with human confirmation URL' },
@@ -475,6 +539,7 @@ export class NodeRegistry {
       { type: 'infrastructure', icon: '🖥️', category: 'devops', description: 'SSH/SFTP/SMTP: Remote commands, file transfer, email' },
 
       // INDIVIDUAL APPLE NODES (Official Apple Icons)
+      { type: 'appleEcosystem', icon: '🍎', category: 'apple', description: 'Unified Apple ecosystem control node' },
       { type: 'imessage', icon: '💬', category: 'apple', description: 'Send iMessages from iCloud account' },
       { type: 'icloudReminders', icon: '✅', category: 'apple', description: 'Create/read/update iCloud Reminders' },
       { type: 'icloudNotes', icon: '📝', category: 'apple', description: 'Manage iCloud Notes folders and notes' },
@@ -482,6 +547,7 @@ export class NodeRegistry {
       { type: 'icloudDrive', icon: '☁️', category: 'apple', description: 'Upload/download files from iCloud Drive' },
 
       // INDIVIDUAL ANDROID NODES (Official Android Icons)
+      { type: 'androidEcosystem', icon: '🤖', category: 'android', description: 'Unified Android ecosystem control node' },
       { type: 'androidMessages', icon: '📱', category: 'android', description: 'Send SMS/RCS messages via Android' },
       { type: 'androidContacts', icon: '👥', category: 'android', description: 'Query Android contacts' },
       { type: 'androidADB', icon: '💻', category: 'android', description: 'Execute ADB commands on connected device' },

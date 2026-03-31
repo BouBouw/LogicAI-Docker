@@ -113,30 +113,53 @@ export class RateLimiterBypassNode extends BaseNode {
   }
 
   private async makeRequest(url: string, method: string, context: ExecutionContext): Promise<any> {
-    // In production, would use axios or fetch
-    // For now, simulate a request
-    const mockResponse = {
-      data: { result: 'mock_data' },
-      headers: {
-        'x-ratelimit-remaining': '100',
-        'x-ratelimit-reset': Math.floor(Date.now() / 1000) + 3600,
-      },
-      status: 200,
-    };
+    const axios = require('axios');
+    
+    const headers = this.config.headers || {};
+    const body = this.resolveValue(this.config.body, context);
+    
+    try {
+      const response = await axios({
+        url,
+        method: method.toUpperCase(),
+        headers,
+        data: ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase()) ? body : undefined,
+        params: method.toUpperCase() === 'GET' ? body : undefined,
+        timeout: this.config.timeout || 30000,
+        validateStatus: () => true, // Don't throw on any status
+      });
 
-    // Simulate occasional rate limiting
-    const shouldRateLimit = Math.random() < 0.1;
+      // Check for rate limiting
+      if (response.status === 429) {
+        const error: any = new Error('Rate limited');
+        error.status = 429;
+        error.headers = response.headers;
+        throw error;
+      }
 
-    if (shouldRateLimit) {
-      const error: any = new Error('Rate limited');
-      error.status = 429;
-      error.headers = {
-        'retry-after': '60',
+      // Throw on other errors
+      if (response.status >= 400) {
+        const error: any = new Error(`Request failed with status ${response.status}`);
+        error.status = response.status;
+        error.response = response;
+        throw error;
+      }
+
+      return {
+        data: response.data,
+        headers: response.headers,
+        status: response.status,
       };
+    } catch (error: any) {
+      // Re-throw with proper structure
+      if (error.response) {
+        const err: any = new Error(error.message);
+        err.status = error.response.status;
+        err.headers = error.response.headers;
+        throw err;
+      }
       throw error;
     }
-
-    return mockResponse;
   }
 
   private extractDomain(url: string): string {

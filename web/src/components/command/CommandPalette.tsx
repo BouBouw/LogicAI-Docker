@@ -8,6 +8,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Search, Clock, FolderOpen, Zap, Command, Loader2 } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
+import { useTranslation } from 'react-i18next';
 import { NODE_TYPES_METADATA } from '../../types/node';
 import { formatShortcut, useKeyboardShortcut, DEFAULT_SHORTCUTS } from '../../hooks/useKeyboardShortcuts';
 
@@ -78,6 +79,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
   // @ts-ignore - project may not exist in all React Flow versions
   const { project } = useReactFlow() || {};
 
@@ -204,16 +206,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a command or search..."
+            placeholder={t('commandPalette.placeholder')}
             className="flex-1 bg-transparent border-none outline-none text-orange-500 placeholder-gray-400"
           />
           <div className="flex items-center gap-1 text-xs text-gray-400">
             <kbd className="px-1.5 py-0.5 bg-white/10 text-gray-300 rounded">↑↓</kbd>
-            <span>to navigate</span>
+            <span>{t('commandPalette.navigateHint')}</span>
             <kbd className="px-1.5 py-0.5 bg-white/10 text-gray-300 rounded ml-2">Enter</kbd>
-            <span>to select</span>
+            <span>{t('commandPalette.selectHint')}</span>
             <kbd className="px-1.5 py-0.5 bg-white/10 text-gray-300 rounded ml-2">Esc</kbd>
-            <span>to close</span>
+            <span>{t('commandPalette.closeHint')}</span>
           </div>
         </div>
 
@@ -222,8 +224,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {filteredCommands.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
               <Search className="w-12 h-12 mb-4 opacity-50" />
-              <p className="text-lg font-medium">No commands found</p>
-              <p className="text-sm mt-1">Try a different search term</p>
+              <p className="text-lg font-medium">{t('commandPalette.noResults')}</p>
+              <p className="text-sm mt-1">{t('commandPalette.noResultsHint')}</p>
             </div>
           ) : (
             <div className="py-2">
@@ -231,7 +233,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               {!query && recentCommands.length > 0 && (
                 <div className="px-4 py-2 flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   <Clock className="w-3 h-3" />
-                  Recent
+                  {t('commandPalette.recent')}
                 </div>
               )}
 
@@ -290,10 +292,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               <Command className="w-3 h-3" />
               LogicAI
             </span>
-            <span className='text-orange-500'>{allCommands.length} commands available</span>
+            <span className='text-orange-500'>{t('commandPalette.commandsAvailable', { count: allCommands.length })}</span>
           </div>
           <div>
-            Press <kbd className="px-1 py-0.5 bg-white/10 text-gray-300 rounded">Ctrl+K</kbd> to open
+            Press <kbd className="px-1 py-0.5 bg-white/10 text-gray-300 rounded">Ctrl+K</kbd> {t('commandPalette.openHint')}
           </div>
         </div>
       </div>

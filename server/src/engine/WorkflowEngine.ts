@@ -178,8 +178,11 @@ export class WorkflowEngine {
     }
 
     try {
+      // Use data.type instead of type for compatibility with React Flow nodes
+      const nodeType = nodeDef.data?.type || nodeDef.type;
+      
       return nodeRegistry.createNode(
-        nodeDef.type,
+        nodeType,
         nodeDef.id,
         nodeDef.data.label,
         nodeDef.data.config

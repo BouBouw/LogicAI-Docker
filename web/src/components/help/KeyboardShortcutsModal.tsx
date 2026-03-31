@@ -6,6 +6,7 @@
 
 import React, { useMemo } from 'react';
 import { X, Search, Zap, PenTool, Eye, Play, HelpCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { DEFAULT_SHORTCUTS, formatShortcut, useKeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
 import type { KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
 
@@ -49,6 +50,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
   shortcuts = DEFAULT_SHORTCUTS,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
+  const { t } = useTranslation();
 
   // Close on ? key press
   useKeyboardShortcut({ key: '?', id: 'close', label: 'Close', description: 'Close shortcuts modal', category: 'help' } as any, onClose, [isOpen]);
@@ -90,10 +92,10 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
             <h2 className="text-xl font-bold text-white">
-              Keyboard Shortcuts
+              {t('shortcuts.title')}
             </h2>
             <p className="text-sm text-gray-300 mt-1">
-              Quick commands to speed up your workflow
+              {t('shortcuts.subtitle')}
             </p>
           </div>
           <button
@@ -112,7 +114,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search shortcuts..."
+              placeholder={t('shortcuts.searchPlaceholder')}
               className="w-full pl-10 pr-4 py-2 border border-white/10 rounded-md bg-white/5 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -123,8 +125,8 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
           {filteredShortcuts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-300">
               <Search className="w-12 h-12 mb-4 opacity-50" />
-              <p className="text-lg font-medium">No shortcuts found</p>
-              <p className="text-sm mt-1">Try a different search term</p>
+              <p className="text-lg font-medium">{t('shortcuts.noResults')}</p>
+              <p className="text-sm mt-1">{t('shortcuts.noResultsHint')}</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -134,7 +136,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
                 <div key={category}>
                   <h3 className="text-sm font-semibold text-brand-blue uppercase tracking-wider mb-3 flex items-center gap-2">
                     <IconComponent className="w-4 h-4" />
-                    {CATEGORY_NAMES[category]}
+                    {t(`shortcuts.categories.${category}`)}
                   </h3>
                   <div className="space-y-2">
                     {categoryShortcuts.map((shortcut) => (
@@ -166,7 +168,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         {/* Footer */}
         <div className="p-4 border-t border-white/10 bg-white/5 rounded-b-lg">
           <p className="text-sm text-gray-300 text-center">
-            Press <kbd className="px-2 py-1 bg-white/10 border border-white/5 rounded text-xs font-mono">?</kbd> to open/close this modal
+            Press <kbd className="px-2 py-1 bg-white/10 border border-white/5 rounded text-xs font-mono">?</kbd> {t('shortcuts.footerAction')}
           </p>
         </div>
       </div>

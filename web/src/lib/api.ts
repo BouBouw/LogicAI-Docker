@@ -11,7 +11,9 @@ import type {
   ExecutionDetails,
 } from '../types/index';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// En production, utiliser une URL relative (même origine)
+// En développement, utiliser VITE_API_URL si défini
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const api = axios.create({
   baseURL: API_URL,

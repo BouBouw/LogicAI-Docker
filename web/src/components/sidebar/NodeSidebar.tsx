@@ -8,7 +8,8 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Settings, Plus, Search, ArrowLeft } from 'lucide-react';
+import { X, Settings, Plus, Search, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   Webhook, Globe, Variable, GitBranch, Edit, Code, Filter, Hash, Grid, Clock,
   AlertCircle, PlaySquare, Activity, FileInput, Rss, Upload, Terminal, Database,
@@ -19,7 +20,7 @@ import {
   Kanban, Music, Zap as ZapIcon, Puzzle, Database as DatabaseIcon, MessageSquareQuote,
   Folder, Link, Settings as SettingsIcon, Bolt, ShoppingBag, Wallet, Square,
   Cloud, Users, Ticket, Phone, SendHorizontal, Mail as MailIcon, CheckCircle,
-  Rocket, FolderOpen, Package, Magnet,
+  Rocket, FolderOpen, Package, Magnet, Workflow, Inbox, Reply, Forward, Trash2,
 } from 'lucide-react';
 import type { CustomNode, NodeType, BaseNodeConfig } from '../../types/node';
 import { NODE_TYPES_METADATA } from '../../types/node';
@@ -31,8 +32,11 @@ import {
   BoxIcon as BoxLogoIcon, OpenAIIcon, GitHubIcon, FigmaIcon, GoogleSheetsIcon,
   GoogleDriveIcon, AirtableIcon, NotionIcon, TrelloIcon, PostgreSQLIcon,
   MongoDBIcon, RedisIcon, SupabaseIcon, InstagramIcon, FacebookIcon,
-  TwitterIcon, LinkedInIcon, TikTokIcon,
-} from '../icons/BrandIcons';
+  TwitterIcon, LinkedInIcon, TikTokIcon, TwitchIcon, YouTubeIcon, KickIcon,
+  SnapchatIcon, AnthropicIcon, GeminiIcon, PerplexityIcon, GLMIcon,
+  OpenRouterIcon, OllamaIcon, FirebaseIcon, SQLiteIcon, S3Icon, DiscordIcon,
+  SlackIcon,
+} from '../icons/SimpleBrandIcons';
 
 // Category Icons Components
 const AppleIcon = () => (
@@ -49,38 +53,82 @@ const AndroidIcon = () => (
 
 // Define categories with icon component names
 const CATEGORIES = {
-  trigger: { label: 'Triggers', icon: Bolt, color: 'purple' },
-  logic: { label: 'Logic & Data', icon: Puzzle, color: 'blue' },
-  action: { label: 'Actions', icon: ZapIcon, color: 'green' },
-  data: { label: 'Data', icon: DatabaseIcon, color: 'cyan' },
-  http: { label: 'HTTP & APIs', icon: Globe, color: 'blue' },
-  communication: { label: 'Communication', icon: MessageSquareQuote, color: 'pink' },
-  social: { label: 'Social Media', icon: MessageCircle, color: 'rose' },
-  productivity: { label: 'Productivity', icon: Folder, color: 'indigo' },
-  payment: { label: 'Payment', icon: CreditCard, color: 'violet' },
-  ecommerce: { label: 'E-commerce', icon: ShoppingBag, color: 'emerald' },
-  crm: { label: 'CRM', icon: Users, color: 'blue' },
-  support: { label: 'Customer Support', icon: Ticket, color: 'red' },
-  marketing: { label: 'Marketing', icon: MailIcon, color: 'orange' },
-  project: { label: 'Project Management', icon: CheckCircle, color: 'sky' },
-  storage: { label: 'Cloud Storage', icon: Cloud, color: 'cyan' },
-  database: { label: 'Database', icon: Database, color: 'blue' },
-  ai: { label: 'AI & LLM', icon: Bot, color: 'emerald' },
-  devops: { label: 'DevOps', icon: GitBranch, color: 'gray' },
-  design: { label: 'Design', icon: PenTool, color: 'pink' },
-  streaming: { label: 'Streaming', icon: Radio, color: 'purple' },
-  automation: { label: 'Automation', icon: Zap, color: 'yellow' },
-  debug: { label: 'Debug', icon: Bug, color: 'lime' },
-  apple: { label: 'Apple Ecosystem', icon: AppleIcon, color: 'gray' },
-  android: { label: 'Android Ecosystem', icon: AndroidIcon, color: 'green' },
-  integration: { label: 'Integrations', icon: Link, color: 'orange' },
-  advanced: { label: 'Advanced', icon: SettingsIcon, color: 'red' },
+  // ─── Core workflow ──────────────────────────────────────────────────────────
+  trigger:      { label: 'Déclencheurs',         icon: Bolt,              color: 'purple'  },
+  logic:        { label: 'Cores',               icon: Puzzle,            color: 'blue'    },
+  ai:           { label: 'AI & LLM',             icon: Bot,               color: 'emerald' },
+  // ─── Data & APIs ─────────────────────────────────────────────────────────
+  http:         { label: 'HTTP & APIs',          icon: Globe,             color: 'blue'    },
+  database:     { label: 'Base de données',      icon: Database,          color: 'blue'    },
+  data:         { label: 'Data / Binary',        icon: DatabaseIcon,      color: 'cyan'    },
+  // ─── Communication ───────────────────────────────────────────────────────
+  communication:{ label: 'Communication',        icon: MessageSquareQuote,color: 'pink'    },
+  // social merged into communication
+  // ─── Business & SaaS ─────────────────────────────────────────────────────
+  productivity: { label: 'Productivity',         icon: Folder,            color: 'indigo'  },
+  crm:          { label: 'CRM',                  icon: Users,             color: 'blue'    },
+  marketing:    { label: 'Mails',                 icon: MailIcon,          color: 'orange'  },
+  ecommerce:    { label: 'E-commerce',           icon: ShoppingBag,       color: 'emerald' },
+  payment:      { label: 'Payment',              icon: CreditCard,        color: 'violet'  },
+  project:      { label: 'Apps',                icon: Package,           color: 'sky'     },
+  storage:      { label: 'Cloud Storage',        icon: Cloud,             color: 'cyan'    },
+  // support merged into project/apps
+  // ─── Dev & Design ────────────────────────────────────────────────────────
+  devops:       { label: 'DevOps',               icon: GitBranch,         color: 'gray'    },
+  streaming:    { label: 'Streaming',            icon: Radio,             color: 'purple'  },  // merged into apps
+  design:       { label: 'Design',               icon: PenTool,           color: 'pink'    },
+  // ─── Misc ────────────────────────────────────────────────────────────────
+  action:       { label: 'Actions',              icon: ZapIcon,           color: 'green'   },
+  automation:   { label: 'Automation',           icon: Zap,               color: 'yellow'  },
+  debug:        { label: 'Debug',                icon: Bug,               color: 'lime'    },
+  apple:        { label: 'Apple',                icon: AppleIcon,         color: 'gray'    },
+  android:      { label: 'Android',              icon: AndroidIcon,       color: 'green'   },
+  advanced:     { label: 'Advanced',             icon: SettingsIcon,      color: 'red'     },
 } as const;
+
+// Explicit node order within each category (unlisted ones fall back to alphabetical)
+const CATEGORY_NODE_ORDER: Partial<Record<string, string[]>> = {
+  trigger: [
+    'clickTrigger', 'chatTrigger', 'logicaiTrigger', 'webhook',
+    'httpPollTrigger', 'schedule', 'cronTrigger', 'formTrigger',
+    'emailTrigger', 'onSuccessFailure', 'errorTrigger',
+  ],
+  logic: [
+    'date', 'uuid', 'textFormatter', 'editFields', 'setVariable',
+    'if', 'switch', 'filter', 'merge', 'splitInBatches',
+    'sort', 'limit', 'wait', 'loop', 'code', 'executeWorkflow',
+    'httpRequest', 'htmlExtract', 'rssRead', 'ftp', 'ssh',
+    'readWriteBinaryFile', 'compression', 'crypto',
+    'infrastructure', 'humanInTheLoop', 'ghost', 'windowsControl', 'liveCanvasDebugger',
+    'noCodeBrowserAutomator', 'rateLimiterBypass', 'smartDataCleaner', 'aggregatorMultiSearch',
+  ],
+  ai: [
+    'aiAgent', 'vectorStore', 'embeddings',
+    'openAI', 'anthropic', 'gemini', 'perplexity', 'glm', 'openrouter', 'ollama',
+  ],
+  http: ['httpRequest', 'htmlExtract', 'rssRead', 'ftp', 'ssh'],
+  database: ['sqlite', 'mySQL', 'mongoDB', 'postgreSQL', 'firebase', 'supabase', 'redis', 'airtable'],
+  data: ['readWriteBinaryFile', 'compression', 'crypto'],
+  communication: ['email', 'slack', 'discord', 'telegram', 'whatsapp', 'twilio', 'instagram', 'facebook', 'twitter', 'linkedin', 'tiktok', 'snapchat'],
+  social: [],
+  productivity: ['googleSheets', 'googleDrive', 'notion', 'trello'],
+  crm: ['salesforce', 'hubspot'],
+  marketing: ['sendgrid', 'mailchimp'],
+  ecommerce: ['shopify', 'wooCommerce'],
+  payment: ['stripe', 'paypal', 'square'],
+  project: ['asana', 'linear', 'zendesk', 'gitHub', 'twitch', 'youtube', 'kick', 'figma'],
+  support: [],
+  storage: ['s3', 'dropbox', 'onedrive', 'box'],
+  devops: [],
+  // devops merged into project/apps
+  design: [],  // merged into apps
+  streaming: [],  // merged into apps
+};
 
 interface NodeSidebarProps {
   selectedNode: CustomNode | null;
   onNodeUpdate: (nodeId: string, config: BaseNodeConfig) => void;
-  onNodeAdd: (type: NodeType) => void;
+  onNodeAdd: (type: NodeType, preConfig?: BaseNodeConfig) => void;
   onNodeDeselect: () => void;
 }
 
@@ -90,11 +138,116 @@ export default function NodeSidebar({
   onNodeAdd,
   onNodeDeselect,
 }: NodeSidebarProps) {
+  const { t } = useTranslation();
+  const [collapsed, setCollapsed] = useState(false);
   const [config, setConfig] = useState<BaseNodeConfig>(
     selectedNode?.data.config || {}
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedParentNode, setSelectedParentNode] = useState<string | null>(null);
+
+  // Dynamically generate parent nodes and their sub-nodes
+  const PARENT_NODE_GROUPS: Record<string, Array<{ label: string; value: string; operation?: string }>> = useMemo(() => {
+    const groups: Record<string, Array<{ label: string; value: string; operation?: string }>> = {
+      // Manual sub-nodes (for social media nodes with specific sub-types)
+      instagram: [
+        { label: 'Post', value: 'instagramPost' as NodeType },
+        { label: 'Story', value: 'instagramStory' as NodeType },
+        { label: 'Reels', value: 'instagramReels' as NodeType },
+      ],
+      facebook: [
+        { label: 'Post', value: 'facebookPost' as NodeType },
+        { label: 'Upload Photo', value: 'facebookUploadPhoto' as NodeType },
+        { label: 'Page Post', value: 'facebookPagePost' as NodeType },
+      ],
+      twitter: [
+        { label: 'Tweet', value: 'twitterTweet' as NodeType },
+        { label: 'Reply', value: 'twitterReply' as NodeType },
+        { label: 'Like', value: 'twitterLike' as NodeType },
+        { label: 'Retweet', value: 'twitterRetweet' as NodeType },
+      ],
+      linkedin: [
+        { label: 'Post', value: 'linkedinPost' as NodeType },
+        { label: 'Share Article', value: 'linkedinShareArticle' as NodeType },
+        { label: 'Message', value: 'linkedinMessage' as NodeType },
+      ],
+      whatsapp: [
+        { label: 'Send Message', value: 'whatsappSendMessage' as NodeType },
+        { label: 'Send Media', value: 'whatsappSendMedia' as NodeType },
+        { label: 'Send Location', value: 'whatsappSendLocation' as NodeType },
+      ],
+      telegram: [
+        { label: 'Send Message', value: 'telegramSendMessage' as NodeType },
+        { label: 'Send Photo', value: 'telegramSendPhoto' as NodeType },
+        { label: 'Bot Command', value: 'telegramBotCommand' as NodeType },
+      ],
+      discord: [
+        { label: 'Send Message', value: 'discordSendMessage' as NodeType },
+        { label: 'Send Embed', value: 'discordSendEmbed' as NodeType },
+        { label: 'Manage Channel', value: 'discordManageChannel' as NodeType },
+      ],
+      slack: [
+        { label: 'Send Message', value: 'slackSendMessage' as NodeType },
+        { label: 'Update Message', value: 'slackUpdateMessage' as NodeType },
+        { label: 'Upload File', value: 'slackUploadFile' as NodeType },
+      ],
+      tiktok: [
+        { label: 'Upload Video', value: 'tiktokUploadVideo' as NodeType },
+        { label: 'Get Video Info', value: 'tiktokGetVideoInfo' as NodeType },
+        { label: 'Get User Info', value: 'tiktokGetUserInfo' as NodeType },
+      ],
+      email: [
+        { label: 'Send Email', value: 'emailSend' as NodeType },
+        { label: 'Read Emails', value: 'emailRead' as NodeType },
+        { label: 'Reply to Email', value: 'emailReply' as NodeType },
+        { label: 'Forward Email', value: 'emailForward' as NodeType },
+        { label: 'Delete Email', value: 'emailDelete' as NodeType },
+      ],
+      twilio: [
+        { label: 'Send SMS', value: 'twilioSendSMS' as NodeType },
+        { label: 'Receive SMS', value: 'twilioReceiveSMS' as NodeType },
+        { label: 'Make Call', value: 'twilioMakeCall' as NodeType },
+        { label: 'Send WhatsApp', value: 'twilioSendWhatsApp' as NodeType },
+      ],
+    };
+
+    // Auto-generate sub-nodes for all nodes with operation/action fields
+    Object.entries(NODE_TYPES_METADATA).forEach(([type, metadata]) => {
+      // Skip if already manually defined
+      if (groups[type]) return;
+
+      // Check if the node has an operation or action field with options
+      const operationField = metadata.config.operation || metadata.config.action;
+      if (operationField && operationField.type === 'select' && operationField.options) {
+        groups[type] = operationField.options.map((option: any) => ({
+          label: option.label,
+          value: type as NodeType, // Use parent type
+          operation: option.value, // Store the operation value
+        }));
+      }
+    });
+
+    return groups;
+  }, []);
+
+  // Get all sub-node types (for filtering out from main node list)
+  const allSubNodes = useMemo(() => {
+    const manualSubNodes = [
+      'instagramPost', 'instagramStory', 'instagramReels',
+      'facebookPost', 'facebookUploadPhoto', 'facebookPagePost',
+      'twitterTweet', 'twitterReply', 'twitterLike', 'twitterRetweet',
+      'linkedinPost', 'linkedinShareArticle', 'linkedinMessage',
+      'whatsappSendMessage', 'whatsappSendMedia', 'whatsappSendLocation',
+      'telegramSendMessage', 'telegramSendPhoto', 'telegramBotCommand',
+      'discordSendMessage', 'discordSendEmbed', 'discordManageChannel',
+      'slackSendMessage', 'slackUpdateMessage', 'slackUploadFile',
+      'tiktokUploadVideo', 'tiktokGetVideoInfo', 'tiktokGetUserInfo',
+      'emailSend', 'emailRead', 'emailReply', 'emailForward', 'emailDelete',
+      'twilioSendSMS', 'twilioReceiveSMS', 'twilioMakeCall', 'twilioSendWhatsApp',
+    ];
+    return manualSubNodes;
+  }, []);
 
   // Update config when selected node changes
   useEffect(() => {
@@ -103,11 +256,16 @@ export default function NodeSidebar({
     }
   }, [selectedNode]);
 
-  // Group nodes by category
+  // Group nodes by category, handling parent/sub-node structure
   const nodesByCategory = useMemo(() => {
     const grouped: Record<string, NodeType[]> = {} as any;
 
     Object.entries(NODE_TYPES_METADATA).forEach(([type, metadata]) => {
+      // Skip sub-nodes as they'll be shown under their parent
+      if (allSubNodes.includes(type as NodeType)) {
+        return;
+      }
+
       // Filter by search query
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -126,6 +284,21 @@ export default function NodeSidebar({
       grouped[category].push(type as NodeType);
     });
 
+    // Sort nodes within each category: explicit order first, then alphabetical
+    Object.keys(grouped).forEach(cat => {
+      const order = CATEGORY_NODE_ORDER[cat];
+      grouped[cat].sort((a, b) => {
+        if (order) {
+          const ia = order.indexOf(a);
+          const ib = order.indexOf(b);
+          if (ia !== -1 && ib !== -1) return ia - ib;
+          if (ia !== -1) return -1;
+          if (ib !== -1) return 1;
+        }
+        return a.localeCompare(b);
+      });
+    });
+
     return grouped;
   }, [searchQuery]);
 
@@ -141,8 +314,17 @@ export default function NodeSidebar({
     setSelectedCategory(category);
   };
 
+  const handleParentNodeClick = (parentNode: string) => {
+    setSelectedParentNode(parentNode);
+  };
+
   const handleBackToCategories = () => {
     setSelectedCategory(null);
+    setSelectedParentNode(null);
+  };
+
+  const handleBackToNodes = () => {
+    setSelectedParentNode(null);
   };
 
   const nodeTypeMetadata = selectedNode
@@ -158,10 +340,38 @@ export default function NodeSidebar({
   // Get nodes for selected category
   const categoryNodes = selectedCategory ? nodesByCategory[selectedCategory] || [] : [];
 
+  // Get sub-nodes for selected parent
+  const subNodes = selectedParentNode ? PARENT_NODE_GROUPS[selectedParentNode] || [] : [];
+
+  // Check if a node has sub-nodes
+  const hasSubNodes = (nodeType: string) => {
+    return nodeType in PARENT_NODE_GROUPS;
+  };
+
   return (
-    <div className="w-80 h-full bg-bg-card border-l border-white/10 flex flex-col" style={{
-      backdropFilter: 'blur(10px)'
-    }}>
+    <div className="relative flex h-full">
+      {/* Toggle tab — always visible */}
+      <button
+        type="button"
+        onClick={() => setCollapsed((v) => !v)}
+        title={collapsed ? t('sidebar.openSidebar') : t('sidebar.closeSidebar')}
+        className="absolute -left-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-[#0d0d0d] border border-white/10 text-gray-400 hover:text-white hover:border-white/30 transition-all shadow-lg"
+      >
+        {collapsed
+          ? <ChevronLeft className="w-3.5 h-3.5" />
+          : <ChevronRight className="w-3.5 h-3.5" />}
+      </button>
+
+      {/* Sidebar panel */}
+      <div
+        className="h-full bg-bg-card border-l border-white/10 flex flex-col overflow-hidden transition-all duration-300"
+        style={{
+          width: collapsed ? '0px' : '320px',
+          backdropFilter: 'blur(10px)',
+          minWidth: collapsed ? '0px' : '320px',
+        }}
+      >
+        <div className="w-80 h-full flex flex-col flex-shrink-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
         <div className="flex items-center gap-2">
@@ -169,7 +379,20 @@ export default function NodeSidebar({
             <>
               <Settings className="w-5 h-5 text-gray-400" />
               <h2 className="text-sm font-semibold text-white">
-                Node Configuration
+                {t('sidebar.nodeConfig')}
+              </h2>
+            </>
+          ) : selectedParentNode ? (
+            <>
+              <button
+                onClick={handleBackToNodes}
+                className="p-1 hover:bg-gray-700 rounded transition-colors mr-1"
+                title="Retour aux noeuds"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-400" />
+              </button>
+              <h2 className="text-sm font-semibold text-white capitalize">
+                {selectedParentNode.replace(/([A-Z])/g, ' $1').trim()}
               </h2>
             </>
           ) : selectedCategory ? (
@@ -177,17 +400,17 @@ export default function NodeSidebar({
               <button
                 onClick={handleBackToCategories}
                 className="p-1 hover:bg-gray-700 rounded transition-colors mr-1"
-                title="Retour aux catégories"
+                title={t('sidebar.backToCategories')}
               >
                 <ArrowLeft className="w-5 h-5 text-gray-400" />
               </button>
               <h2 className="text-sm font-semibold text-white">
-                {CATEGORIES[selectedCategory as keyof typeof CATEGORIES]?.label || selectedCategory}
+                {t(`sidebar.categories.${selectedCategory}`) || CATEGORIES[selectedCategory as keyof typeof CATEGORIES]?.label || selectedCategory}
               </h2>
             </>
           ) : (
             <>
-              <h2 className="text-sm font-semibold text-white">Noeuds</h2>
+              <h2 className="text-sm font-semibold text-white">{t('sidebar.nodes')}</h2>
             </>
           )}
         </div>
@@ -342,40 +565,54 @@ export default function NodeSidebar({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Rechercher un nœud..."
+                    placeholder={t('sidebar.searchPlaceholder')}
                     className="w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue placeholder-gray-500"
                   />
                 </div>
 
                 <p className="text-xs text-gray-400 mb-3">
-                  Cliquez sur une catégorie pour voir les nœuds
+                  {t('sidebar.categoryHint')}
                 </p>
               </>
             )}
 
-            {/* Categories Grid or Category Nodes */}
-            <div className={selectedCategory ? 'animate-fadeIn' : ''}>
-              {selectedCategory ? (
-                // Show nodes in selected category
+            {/* Categories Grid or Category Nodes or Sub-Nodes */}
+            <div className={selectedCategory || selectedParentNode ? 'animate-fadeIn' : ''}>
+              {selectedParentNode ? (
+                // Show sub-nodes for selected parent
                 <div className="space-y-2">
-                  {categoryNodes.length === 0 ? (
+                  {subNodes.length === 0 ? (
                     <p className="text-xs text-gray-500 text-center py-4">
-                      Aucun nœud dans cette catégorie
+                      Aucun sous-nœud disponible
                     </p>
                   ) : (
-                    categoryNodes.map((type) => {
-                      const metadata = NODE_TYPES_METADATA[type];
+                    subNodes.map((subNode, index) => {
+                      // For operation-based sub-nodes, use parent metadata
+                      const nodeType = subNode.value as NodeType;
+                      const metadata = NODE_TYPES_METADATA[nodeType];
+                      
                       return (
                         <button
-                          key={type}
-                          onClick={() => onNodeAdd(type)}
+                          key={`${subNode.value}-${subNode.operation || index}`}
+                          onClick={() => {
+                            // If it has an operation, add the parent node with pre-configured operation
+                            if (subNode.operation) {
+                              onNodeAdd(subNode.value as NodeType, {
+                                operation: subNode.operation,
+                                action: subNode.operation,
+                              });
+                            } else {
+                              // Regular sub-node
+                              onNodeAdd(subNode.value as NodeType);
+                            }
+                          }}
                           className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-all duration-200 text-left group animate-slideInRight"
-                          style={{ animationDelay: `${categoryNodes.indexOf(type) * 50}ms` }}
+                          style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          {getNodeIcon(type)}
+                          {getNodeIcon(nodeType)}
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-semibold text-white capitalize group-hover:text-brand-blue transition-colors">
-                              {type.replace(/([A-Z])/g, ' $1').trim()}
+                            <h3 className="text-sm font-semibold text-white group-hover:text-brand-blue transition-colors">
+                              {subNode.label}
                             </h3>
                             <p className="text-xs text-gray-500 truncate">
                               {metadata?.description || 'Add this node to your workflow'}
@@ -387,43 +624,93 @@ export default function NodeSidebar({
                     })
                   )}
                 </div>
+              ) : selectedCategory ? (
+                // Show nodes in selected category
+                <div className="space-y-2">
+                  {categoryNodes.length === 0 ? (
+                    <p className="text-xs text-gray-500 text-center py-4">
+                      {t('sidebar.noCategoryNodes')}
+                    </p>
+                  ) : (
+                    categoryNodes.map((type) => {
+                      const metadata = NODE_TYPES_METADATA[type];
+                      const isParent = hasSubNodes(type);
+                      
+                      return (
+                        <button
+                          key={type}
+                          onClick={() => {
+                            if (isParent) {
+                              handleParentNodeClick(type);
+                            } else {
+                              onNodeAdd(type);
+                            }
+                          }}
+                          className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-all duration-200 text-left group animate-slideInRight"
+                          style={{ animationDelay: `${categoryNodes.indexOf(type) * 50}ms` }}
+                        >
+                          {getNodeIcon(type)}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-semibold text-white capitalize group-hover:text-brand-blue transition-colors">
+                              {type.replace(/([A-Z])/g, ' $1').trim()}
+                              {isParent && (
+                                <span className="ml-2 text-xs text-gray-500">
+                                  ({PARENT_NODE_GROUPS[type].length} options)
+                                </span>
+                              )}
+                            </h3>
+                            <p className="text-xs text-gray-500 truncate">
+                              {metadata?.description || 'Add this node to your workflow'}
+                            </p>
+                          </div>
+                          {isParent ? (
+                            <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-brand-blue transition-colors shrink-0" />
+                          ) : (
+                            <Plus className="w-4 h-4 text-gray-600 group-hover:text-brand-blue transition-colors shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
               ) : (
                 // Show categories list
                 <div className="space-y-2">
-                  {Object.entries(nodesByCategory).map(([category, nodeTypes]) => {
-                    const categoryInfo = CATEGORIES[category as keyof typeof CATEGORIES] || {
-                      label: category,
-                      icon: Archive,
-                      color: 'gray'
-                    };
-                    const IconComponent = categoryInfo.icon;
+                  {(Object.keys(CATEGORIES) as Array<keyof typeof CATEGORIES>)
+                    .filter(cat => (nodesByCategory[cat]?.length ?? 0) > 0)
+                    .map(category => {
+                      const nodeTypes = nodesByCategory[category];
+                      const categoryInfo = CATEGORIES[category];
+                      const IconComponent = categoryInfo.icon;
 
-                    return (
-                      <button
-                        key={category}
-                        onClick={() => handleCategoryClick(category)}
-                        className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-all duration-200 text-left group"
-                      >
-                        <div className="group-hover:scale-110 transition-transform flex items-center justify-center w-6 h-6">
-                          <IconComponent className={`w-6 h-6 text-${categoryInfo.color}-400`} />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-sm font-semibold text-white capitalize">
-                            {categoryInfo.label}
-                          </h3>
-                          <span className="text-xs text-gray-500">
-                            {nodeTypes.length} nœud{nodeTypes.length > 1 ? 's' : ''}
-                          </span>
-                        </div>
-                        <Plus className="w-4 h-4 text-gray-600 group-hover:text-brand-blue transition-colors shrink-0" />
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={category}
+                          onClick={() => handleCategoryClick(category)}
+                          className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-all duration-200 text-left group"
+                        >
+                          <div className="group-hover:scale-110 transition-transform flex items-center justify-center w-6 h-6">
+                            <IconComponent className={`w-6 h-6 text-${categoryInfo.color}-400`} />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-white capitalize">
+                              {t(`sidebar.categories.${category}`) || categoryInfo.label}
+                            </h3>
+                            <span className="text-xs text-gray-500">
+                              {nodeTypes.length} nœud{nodeTypes.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <Plus className="w-4 h-4 text-gray-600 group-hover:text-brand-blue transition-colors shrink-0" />
+                        </button>
+                      );
+                    })}
                 </div>
               )}
             </div>
           </div>
         )}
+      </div>
+        </div>
       </div>
     </div>
   );
@@ -444,7 +731,6 @@ function getNodeIcon(type: NodeType) {
     webhook: { component: Webhook, className: 'w-5 h-5 text-purple-400' },
     httpRequest: { component: Globe, className: 'w-5 h-5 text-blue-400' },
     setVariable: { component: Variable, className: 'w-5 h-5 text-green-400' },
-    condition: { component: GitBranch, className: 'w-5 h-5 text-orange-400' },
     editFields: { component: Edit, className: 'w-5 h-5 text-indigo-400' },
     code: { component: Code, className: 'w-5 h-5 text-violet-400' },
     filter: { component: Filter, className: 'w-5 h-5 text-cyan-400' },
@@ -456,6 +742,13 @@ function getNodeIcon(type: NodeType) {
     executeWorkflow: { component: PlaySquare, className: 'w-5 h-5 text-emerald-400' },
     limit: { component: Hash, className: 'w-5 h-5 text-lime-400' },
     sort: { component: ArrowUpDown, className: 'w-5 h-5 text-sky-400' },
+    
+    // LOGIC NODES
+    loop: { component: RefreshCw, className: 'w-5 h-5 text-purple-400' },
+    date: { component: Clock, className: 'w-5 h-5 text-blue-400' },
+    uuid: { component: Hash, className: 'w-5 h-5 text-green-400' },
+    textFormatter: { component: Edit, className: 'w-5 h-5 text-cyan-400' },
+    if: { component: GitBranch, className: 'w-5 h-5 text-orange-400' },
 
     // PAYMENT & E-COMMERCE
     stripe: { component: StripeIcon },
@@ -478,6 +771,7 @@ function getNodeIcon(type: NodeType) {
     emailTrigger: { component: Mail, className: 'w-5 h-5 text-gray-500' },
     httpPollTrigger: { component: RefreshCw, className: 'w-5 h-5 text-teal-500' },
     cronTrigger: { component: Clock, className: 'w-5 h-5 text-yellow-500' },
+    logicaiTrigger: { component: Workflow, className: 'w-5 h-5 text-emerald-500' },
 
     // HTTP & DATA
     htmlExtract: { component: Globe, className: 'w-5 h-5 text-green-400' },
@@ -491,14 +785,25 @@ function getNodeIcon(type: NodeType) {
     mongoDB: { component: MongoDBIcon },
     redis: { component: RedisIcon },
     supabase: { component: SupabaseIcon },
+    firebase: { component: FirebaseIcon },
+    sqlite: { component: SQLiteIcon },
 
     // COMMUNICATION
     email: { component: Mail, className: 'w-5 h-5 text-gray-500' },
-    slack: { component: MessageSquare, className: 'w-5 h-5 text-purple-600' },
-    discord: { component: MessageCircle, className: 'w-5 h-5 text-indigo-500' },
+    emailSend: { component: Send, className: 'w-5 h-5 text-blue-400' },
+    emailRead: { component: Inbox, className: 'w-5 h-5 text-green-400' },
+    emailReply: { component: Reply, className: 'w-5 h-5 text-yellow-400' },
+    emailForward: { component: Forward, className: 'w-5 h-5 text-orange-400' },
+    emailDelete: { component: Trash2, className: 'w-5 h-5 text-red-400' },
+    slack: { component: SlackIcon },
+    discord: { component: DiscordIcon },
     telegram: { component: Send, className: 'w-5 h-5 text-cyan-500' },
     whatsapp: { component: MessageSquare, className: 'w-5 h-5 text-green-500' },
     twilio: { component: TwilioIcon },
+    twilioSendSMS: { component: MessageSquare, className: 'w-5 h-5 text-red-400' },
+    twilioReceiveSMS: { component: Inbox, className: 'w-5 h-5 text-red-300' },
+    twilioMakeCall: { component: Phone, className: 'w-5 h-5 text-red-500' },
+    twilioSendWhatsApp: { component: MessageSquare, className: 'w-5 h-5 text-green-400' },
     sendgrid: { component: SendGridIcon },
     mailchimp: { component: MailchimpIcon },
 
@@ -508,22 +813,58 @@ function getNodeIcon(type: NodeType) {
       color: 'text-pink-500',
       wrapped: true
     },
+    instagramPost: { component: InstagramIcon },
+    instagramStory: { component: InstagramIcon },
+    instagramReels: { component: InstagramIcon },
     facebook: {
       svgPath: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
       color: 'text-blue-600',
       wrapped: true
     },
+    facebookPost: { component: FacebookIcon },
+    facebookUploadPhoto: { component: FacebookIcon },
+    facebookPagePost: { component: FacebookIcon },
     twitter: {
       svgPath: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z',
       color: 'text-sky-500',
       wrapped: true
     },
+    twitterTweet: { component: TwitterIcon },
+    twitterReply: { component: TwitterIcon },
+    twitterLike: { component: TwitterIcon },
+    twitterRetweet: { component: TwitterIcon },
     linkedin: {
       svgPath: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z',
       color: 'text-blue-700',
       wrapped: true
     },
-    tiktok: { component: Music, className: 'w-5 h-5 text-gray-800' },
+    linkedinPost: { component: LinkedInIcon },
+    linkedinShareArticle: { component: LinkedInIcon },
+    linkedinMessage: { component: LinkedInIcon },
+    tiktok: { component: TikTokIcon },
+    tiktokUploadVideo: { component: TikTokIcon },
+    tiktokGetVideoInfo: { component: TikTokIcon },
+    tiktokGetUserInfo: { component: TikTokIcon },
+    snapchat: { component: SnapchatIcon },
+    
+    // SUB-NODES FOR WHATSAPP & TELEGRAM
+    whatsappSendMessage: { component: MessageSquare, className: 'w-5 h-5 text-green-500' },
+    whatsappSendMedia: { component: MessageSquare, className: 'w-5 h-5 text-green-500' },
+    whatsappSendLocation: { component: MessageSquare, className: 'w-5 h-5 text-green-500' },
+    telegramSendMessage: { component: Send, className: 'w-5 h-5 text-cyan-500' },
+    telegramSendPhoto: { component: Send, className: 'w-5 h-5 text-cyan-500' },
+    telegramBotCommand: { component: Send, className: 'w-5 h-5 text-cyan-500' },
+    discordSendMessage: { component: DiscordIcon },
+    discordSendEmbed: { component: DiscordIcon },
+    discordManageChannel: { component: DiscordIcon },
+    slackSendMessage: { component: SlackIcon },
+    slackUpdateMessage: { component: SlackIcon },
+    slackUploadFile: { component: SlackIcon },
+
+    // STREAMING PLATFORMS
+    twitch: { component: TwitchIcon },
+    youtube: { component: YouTubeIcon },
+    kick: { component: KickIcon },
 
     // CLOUD PRODUCTIVITY
     googleSheets: { component: GoogleSheetsIcon },
@@ -540,9 +881,16 @@ function getNodeIcon(type: NodeType) {
     dropbox: { component: DropboxIcon },
     onedrive: { component: OneDriveIcon },
     box: { component: BoxLogoIcon },
+    s3: { component: S3Icon },
 
     // AI/LLM
     openAI: { component: OpenAIIcon },
+    anthropic: { component: AnthropicIcon },
+    gemini: { component: GeminiIcon },
+    perplexity: { component: PerplexityIcon },
+    glm: { component: GLMIcon },
+    openrouter: { component: OpenRouterIcon },
+    ollama: { component: OllamaIcon },
     aiAgent: { component: Mic, className: 'w-5 h-5 text-violet-400' },
     vectorStore: { component: Database, className: 'w-5 h-5 text-pink-400' },
     embeddings: { component: Cpu, className: 'w-5 h-5 text-cyan-400' },

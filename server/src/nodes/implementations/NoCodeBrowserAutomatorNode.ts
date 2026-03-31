@@ -91,26 +91,19 @@ export class NoCodeBrowserAutomatorNode extends BaseNode {
   }
 
   private async gotoPage(url: string): Promise<any> {
-    // Placeholder: Would use page.goto(url) in Puppeteer
-    return { action: 'goto', url, success: true };
+    throw new Error('Browser automation requires puppeteer or playwright. Run: npm install puppeteer');
   }
 
   private async clickElement(selector: string): Promise<any> {
-    // Placeholder: Would use page.click(selector) in Puppeteer
-    return { action: 'click', selector, success: true };
+    throw new Error('Browser automation requires puppeteer or playwright. Run: npm install puppeteer');
   }
 
   private async fillInput(selector: string, value: string, context: ExecutionContext): Promise<any> {
-    // Resolve variables in value
-    const resolvedValue = this.resolveVariables(value, context);
-
-    // Placeholder: Would use page.fill(selector, resolvedValue) in Playwright
-    return { action: 'fill', selector, value: resolvedValue, success: true };
+    throw new Error('Browser automation requires puppeteer or playwright. Run: npm install puppeteer');
   }
 
   private async selectOption(selector: string, value: string): Promise<any> {
-    // Placeholder: Would use page.selectOption(selector, value) in Playwright
-    return { action: 'select', selector, value, success: true };
+    throw new Error('Browser automation requires puppeteer or playwright. Run: npm install puppeteer');
   }
 
   private async scroll(direction: string, amount: number): Promise<any> {

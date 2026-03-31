@@ -3,6 +3,13 @@ import cors from 'cors';
 import path from 'path';
 import workflowRoutes from './routes/workflows';
 import webhookRoutes from './routes/webhooks';
+import authRoutes from './routes/auth';
+import formsRoutes from './routes/forms';
+import chatRoutes from './routes/chat';
+import ftpRoutes from './routes/ftp';
+import systemRoutes from './routes/system';
+import localDbRoutes from './routes/localDatabases';
+import membersRoutes from './routes/members';
 
 export function createApp(): Application {
   const app = express();
@@ -14,6 +21,7 @@ export function createApp(): Application {
       `http://localhost:${externalPort}`,
       'http://localhost:5173',
       'http://localhost:5174',
+      'http://localhost:5681',
     ],
     credentials: true,
   }));
@@ -40,6 +48,13 @@ export function createApp(): Application {
 
   // API Routes
   app.use('/api/workflows', workflowRoutes);
+  app.use('/api/auth', authRoutes);
+  app.use('/api/forms', formsRoutes);
+  app.use('/api/chat', chatRoutes);
+  app.use('/api/ftp', ftpRoutes);
+  app.use('/api/system', systemRoutes);
+  app.use('/api/local-databases', localDbRoutes);
+  app.use('/api/members', membersRoutes);
   app.use('/webhook', webhookRoutes);
 
   // SPA fallback - serve index.html for all non-API routes

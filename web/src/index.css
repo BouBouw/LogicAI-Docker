@@ -152,7 +152,26 @@ body {
 
 /* Improved node styling */
 .react-flow__node {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: grab;
+}
+
+.react-flow__node.dragging {
+  cursor: grabbing !important;
+  transition: none !important;
+}
+
+.react-flow__node.dragging * {
+  transition: none !important;
+  pointer-events: none !important;
+}
+
+/* Optimize rendering during drag */
+.react-flow__pane {
+  cursor: default;
+}
+
+.react-flow__pane.dragging {
+  cursor: grabbing !important;
 }
 
 /* Hide ReactFlow attribution */

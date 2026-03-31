@@ -2,13 +2,16 @@ import React from 'react';
 import { RouterProvider } from 'react-router';
 import { getRouter } from './router';
 import { ExecutionProvider } from './contexts/ExecutionContext';
+import { InstanceAuthProvider } from './components/auth/InstanceAuthProvider';
 
 function App() {
   const router = getRouter();
   return (
-    <ExecutionProvider>
-      <RouterProvider router={router} />
-    </ExecutionProvider>
+    <InstanceAuthProvider>
+      <ExecutionProvider>
+        <RouterProvider router={router} />
+      </ExecutionProvider>
+    </InstanceAuthProvider>
   );
 }
 

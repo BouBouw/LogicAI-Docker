@@ -1,8 +1,28 @@
 import { Request, Response } from 'express';
 import databaseService from '../services/databaseService';
+import { getDatabaseForInstance } from '../config/database';
 import { WorkflowEngine, WorkflowDef } from '../engine/WorkflowEngine';
 
-const prisma = databaseService.getPrisma();
+/**
+ * Récupère l'instance ID depuis le token JWT
+ */
+function getInstanceIdFromRequest(req: Request): string {
+  // Essayer de récupérer depuis le header Authorization
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7);
+      // Le token contient userId et instanceId encodés en base64
+      // Pour l'instant, on utilise l'instance ID depuis les variables d'environnement
+      const instanceId = process.env.INSTANCE_ID || 'default-instance';
+      return instanceId;
+    } catch {
+      // Ignore les erreurs de décodage
+    }
+  }
+  // Fallback sur l'instance ID des variables d'environnement
+  return process.env.INSTANCE_ID || 'default-instance';
+}
 
 /**
  * Workflow Controller - Handles workflow CRUD operations
@@ -14,6 +34,8 @@ export class WorkflowController {
    */
   static async getAllWorkflows(req: Request, res: Response): Promise<void> {
     try {
+      const instanceId = getInstanceIdFromRequest(req);
+      const prisma = getDatabaseForInstance(instanceId);
       const workflows = await prisma.workflow.findMany({
         orderBy: { updatedAt: 'desc' },
       });
@@ -38,6 +60,8 @@ export class WorkflowController {
     try {
       const { id } = req.params;
       const workflowId = id as string;
+      const instanceId = getInstanceIdFromRequest(req);
+      const prisma = getDatabaseForInstance(instanceId);
 
       const workflow = await prisma.workflow.findUnique({
         where: { id: workflowId },
@@ -76,6 +100,14 @@ export class WorkflowController {
   static async createWorkflow(req: Request, res: Response): Promise<void> {
     try {
       const { name, description, nodes, edges } = req.body;
+      const instanceId = getInstanceIdFromRequest(req);
+      
+      console.log(`🔧 Creating workflow for instance: ${instanceId}`);
+      console.log(`   Name: ${name}`);
+      console.log(`   Nodes:`, nodes ? JSON.stringify(nodes).substring(0, 100) : 'null');
+      console.log(`   Edges:`, edges ? JSON.stringify(edges).substring(0, 100) : 'null');
+
+      const prisma = getDatabaseForInstance(instanceId);
 
       // Validate input
       if (!name) {
@@ -86,24 +118,37 @@ export class WorkflowController {
         return;
       }
 
+      // Ensure nodes and edges are arrays
+      const workflowNodes = Array.isArray(nodes) ? nodes : [];
+      const workflowEdges = Array.isArray(edges) ? edges : [];
+
+      console.log(`📝 Creating workflow with ${workflowNodes.length} nodes and ${workflowEdges.length} edges`);
+
       // Create workflow
       const workflow = await prisma.workflow.create({
         data: {
           name,
           description: description || null,
-          nodes: nodes || [],
-          edges: edges || [],
+          nodes: workflowNodes,
+          edges: workflowEdges,
         },
       });
+
+      console.log(`✅ Workflow created successfully: ${workflow.id}`);
 
       res.status(201).json({
         success: true,
         data: workflow,
       });
     } catch (error: any) {
+      console.error('❌ Failed to create workflow:', error);
+      console.error('   Error message:', error.message);
+      console.error('   Error stack:', error.stack);
+      
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to create workflow',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       });
     }
   }
@@ -117,6 +162,8 @@ export class WorkflowController {
       const { id } = req.params;
       const workflowId = id as string;
       const { name, description, nodes, edges, isActive } = req.body;
+      const instanceId = getInstanceIdFromRequest(req);
+      const prisma = getDatabaseForInstance(instanceId);
 
       // Check if workflow exists
       const existing = await prisma.workflow.findUnique({
@@ -163,6 +210,8 @@ export class WorkflowController {
     try {
       const { id } = req.params;
       const workflowId = id as string;
+      const instanceId = getInstanceIdFromRequest(req);
+      const prisma = getDatabaseForInstance(instanceId);
 
       // Check if workflow exists
       const existing = await prisma.workflow.findUnique({
@@ -203,6 +252,8 @@ export class WorkflowController {
       const { id } = req.params;
       const workflowId = id as string;
       const data = req.body || {};
+      const instanceId = getInstanceIdFromRequest(req);
+      const prisma = getDatabaseForInstance(instanceId);
 
       // Fetch workflow
       const workflow = await prisma.workflow.findUnique({
@@ -250,7 +301,9 @@ export class WorkflowController {
       }
 
       // Send response
+      console.log('📊 Workflow execution result:', { success: result.success, errorsCount: result.errors.length });
       if (result.success) {
+        console.log('✅ Workflow executed successfully');
         res.json({
           success: true,
           data: {
@@ -259,6 +312,7 @@ export class WorkflowController {
           },
         });
       } else {
+        console.error('❌ Workflow execution failed with errors:', result.errors);
         res.status(500).json({
           success: false,
           error: 'Workflow execution failed',
@@ -266,9 +320,12 @@ export class WorkflowController {
         });
       }
     } catch (error: any) {
+      console.error('❌ Workflow execution error:', error);
+      console.error('Stack trace:', error.stack);
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to execute workflow',
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       });
     }
   }
@@ -282,6 +339,8 @@ export class WorkflowController {
       const { id } = req.params;
       const workflowId = id as string;
       const limit = parseInt(req.query.limit as string) || 50;
+      const instanceId = getInstanceIdFromRequest(req);
+      const prisma = getDatabaseForInstance(instanceId);
 
       const executions = await prisma.nodeExecution.findMany({
         where: { workflowId },

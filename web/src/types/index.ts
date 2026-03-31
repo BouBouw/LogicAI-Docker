@@ -37,10 +37,11 @@ export interface WorkflowExecutionResult {
 }
 
 export interface ExecutionDetails {
-  workflowId: string;
-  status: 'running' | 'success' | 'error';
-  startedAt: string;
+  workflowId?: string;
+  status?: 'running' | 'success' | 'error';
+  startedAt?: string;
   completedAt?: string;
-  results: any[];
+  results: Array<[string, any]>;
+  executionTime: number;
   error?: string;
 }

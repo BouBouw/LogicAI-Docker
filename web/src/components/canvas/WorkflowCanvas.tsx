@@ -29,7 +29,9 @@ import '@xyflow/react/dist/style.css';
 import CustomNodeComponent from './CustomNode';
 import { ZoomControls } from './ZoomControls';
 import { EnhancedMiniMap } from './EnhancedMiniMap';
+import { RemoteCursorsLayer } from './RemoteCursorsLayer';
 import type { CustomNode } from '../../types/node';
+import type { RemoteCursor } from '../../hooks/useCollaboration';
 
 const nodeTypes = {
   custom: CustomNodeComponent,
@@ -43,6 +45,8 @@ interface WorkflowCanvasProps {
   onConnect?: OnConnect;
   onNodeClick?: NodeMouseHandler<CustomNode>;
   onNodeDoubleClick?: NodeMouseHandler<CustomNode>;
+  onNodeMouseEnter?: NodeMouseHandler<CustomNode>;
+  onNodeMouseLeave?: NodeMouseHandler<CustomNode>;
   onEdgeClick?: EdgeMouseHandler<Edge>;
   onPaneClick?: (event: React.MouseEvent) => void;
   readOnly?: boolean;
@@ -52,6 +56,7 @@ interface WorkflowCanvasProps {
   onToggleChatPanel?: () => void;
   showExecutionPanel?: boolean;
   onToggleExecutionPanel?: () => void;
+  remoteCursors?: RemoteCursor[];
 }
 
 export default function WorkflowCanvas({
@@ -62,6 +67,8 @@ export default function WorkflowCanvas({
   onConnect,
   onNodeClick,
   onNodeDoubleClick,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
   onEdgeClick,
   onPaneClick,
   readOnly = false,
@@ -71,6 +78,7 @@ export default function WorkflowCanvas({
   onToggleChatPanel,
   showExecutionPanel = false,
   onToggleExecutionPanel,
+  remoteCursors = [],
 }: WorkflowCanvasProps) {
   const [miniMapPosition, setMiniMapPosition] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('bottom-right');
   return (
@@ -90,10 +98,11 @@ export default function WorkflowCanvas({
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         onNodeDoubleClick={onNodeDoubleClick}
+        onNodeMouseEnter={onNodeMouseEnter}
+        onNodeMouseLeave={onNodeMouseLeave}
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
-        fitView
         nodesDraggable={!readOnly}
         nodesConnectable={!readOnly}
         elementsSelectable={true}
@@ -105,17 +114,23 @@ export default function WorkflowCanvas({
           animated: false,
           style: { stroke: '#4A4A4E', strokeWidth: 2 },
         }}
-        panOnScroll
-        selectionOnDrag
+        panOnScroll={true}
+        selectionOnDrag={true}
+        selectionKeyCode="Control"
         multiSelectionKeyCode="Control"
-        zoomOnScroll
-        zoomOnPinch
-        panOnDrag
+        zoomOnScroll={true}
+        zoomOnPinch={true}
+        panOnDrag={true}
         minZoom={0.2}
         maxZoom={4}
-        preventScrolling={false}
-        elevateNodesOnSelect
-        elevateEdgesOnSelect
+        autoPanOnNodeDrag={false}
+        autoPanOnConnect={false}
+        preventScrolling={true}
+        elevateNodesOnSelect={false}
+        elevateEdgesOnSelect={false}
+        snapToGrid={false}
+        nodeOrigin={[0.5, 0.5]}
+        proOptions={{ hideAttribution: true }}
       >
         <Background
           variant={BackgroundVariant.Dots}
@@ -128,11 +143,10 @@ export default function WorkflowCanvas({
         />
       </ReactFlow>
 
-      {/* Enhanced Zoom Controls */}
-      <ZoomControls
-        showMiniMap={showMiniMap}
-        onToggleMiniMap={onToggleMiniMap}
-      />
+      {/* Remote cursors overlay — outside ReactFlow to avoid double-transform */}
+      {remoteCursors.length > 0 && (
+        <RemoteCursorsLayer cursors={remoteCursors} />
+      )}
 
       {/* Enhanced Zoom Controls */}
       <ZoomControls
@@ -149,33 +163,7 @@ export default function WorkflowCanvas({
         />
       )}
 
-      {/* Chat & Logs buttons - positioned above mini-map */}
-      {(onToggleChatPanel || onToggleExecutionPanel) && (
-        <div className="absolute bottom-42 right-4 flex gap-2 z-20">
-          {onToggleChatPanel && (
-            <button
-              onClick={onToggleChatPanel}
-              className={`flex items-center gap-2 px-4.5 py-2 text-white rounded-lg transition-colors ${
-                showChatPanel ? 'bg-orange-500 hover:bg-orange-600' : 'bg-white/5 hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              Chat
-            </button>
-          )}
-          {onToggleExecutionPanel && (
-            <button
-              onClick={onToggleExecutionPanel}
-              className={`flex items-center gap-2 px-4.5 py-2 text-white rounded-lg transition-colors ${
-                showExecutionPanel ? 'bg-brand-blue hover:bg-brand-hover' : 'bg-white/5 hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              <ScrollText className="w-4 h-4" />
-              Logs
-            </button>
-          )}
-        </div>
-      )}
+      {/* Chat & Logs buttons removed — handled by the resizable BottomBar in WorkflowEditor */}
     </div>
   );
 }
